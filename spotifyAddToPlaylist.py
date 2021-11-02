@@ -9,6 +9,8 @@ def toStr(x, y):
 initialWinId = os.popen('xdotool getactivewindow').read().strip()
 spotifyWinId = os.popen('xdotool search --onlyvisible --class Spotify').read().strip()
 
+if spotifyWinId == "":
+	sys.exit()
 # Get coordinates of mouse pointer initially
 x_init, y_init = [t[2:] for t in os.popen('xdotool getmouselocation').read().strip().split()][:2]
 
@@ -17,7 +19,7 @@ x0 = 20
 y0 = 1030
 
 # Switching to Spotify and moving mouse to song name
-os.popen("xdotool windowactivate --sync "+ spotifyWinId + " mousemove --sync " + toStr(x0, y0))
+os.popen("xdotool windowactivate --sync "+ spotifyWinId + " mousemove --sync " + toStr(x0, y0) + " sleep 0.1")
 
 # Check for "Already added" popup by
 # taking color of pixel at (950, 570) (might need experimenting to get coordinates right)
@@ -27,7 +29,7 @@ color = os.popen("xwd -id "+ spotifyWinId +" -silent | convert xwd:- -depth 8 -c
 # Delay for closing the "Already added" popup
 # Different color for if the mouse hovers over the "Don't add" button
 if color in ["#1ED760", "#1DB954", "#00CB4E", "#02CA4F", "#1ACF5F", "#00EB59"]:
-	os.popen("xdotool click --repeat 2 --delay 200 1")
+	os.popen("xdotool click 1 sleep 0.3")
 
 # Rank of the playlist in the "add to playlist" dialog box
 # Rank 0 for the "Add to new playlist" button
