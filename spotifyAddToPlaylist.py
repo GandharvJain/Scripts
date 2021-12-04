@@ -1,9 +1,20 @@
 #!/usr/bin/python
 import sys, os
+import math as m
 # For 1920x1080 screen
 
 def toStr(x, y):
 	return str(x) + " " + str(y)
+
+def hex2rgb(value):
+	r = int(value[1:3], 16)
+	g = int(value[3:5], 16)
+	b = int(value[5:7], 16)
+	return (r, g, b)
+
+def dist(rgb1, rgb2):
+	tmp = tuple(map(lambda i, j: (i-j)**2, rgb1, rgb2))
+	return m.sqrt(sum(list(tmp)))
 
 # Getting current and spotify window IDs
 initialWinId = os.popen('xdotool getactivewindow').read().strip()
@@ -27,8 +38,8 @@ color = os.popen("xwd -id "+ spotifyWinId +" -silent | convert xwd:- -depth 8 -c
 # print(color)
 
 # Delay for closing the "Already added" popup
-# Different color for if the mouse hovers over the "Don't add" button
-if color in ["#1ED760", "#1DB954", "#00CB4E", "#02CA4F", "#1ACF5F", "#00EB59"]:
+# Range of green color for the "Don't add" button
+if dist(hex2rgb(color), hex2rgb("#1acf5f")) < 90:
 	os.popen("xdotool click 1 sleep 0.3")
 
 # Rank of the playlist in the "add to playlist" dialog box

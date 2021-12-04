@@ -37,8 +37,8 @@ if __name__ == '__main__':
 
     windows = getlist()[0:]
     current = currentwin()
-    print(repr(windows))
-    print(repr(current))
+    # print(repr(windows))
+    # print(repr(current))
     index = windows.index(current)
     if len(sys.argv) != 2 or sys.argv[1] not in ['left', 'right']:
         print('''
