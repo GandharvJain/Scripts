@@ -11,7 +11,7 @@ scene = "Chrome"
 if prime_profile == "intel":
 	obs_profile = "Intel"
 
-obs_pid = os.popen("pgrep obs").read().strip()
+obs_pid = os.popen("pgrep -x obs").read().strip()
 
 def start():
 	command = "snap run obs-studio --profile " + obs_profile + " --scene " + scene + " --startrecording --minimize-to-tray"
