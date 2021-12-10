@@ -27,31 +27,37 @@ def renameDialog():
 	latest_file = max(file_list, key=os.path.getctime).replace(obs_save_path + '/', '')
 
 
-	cmd = 'zenity --entry --width=300 --height=100 --title="Save as" --text="Enter recording name:" --entry-text='
+	cmd = 'zenity --entry --width=400 --height=100 --title="Save as" --text="Enter recording name:\nPWD: %s/" --entry-text=' % obs_save_path
 	cmd += latest_file
-	cmd += ' && sleep 1 && wmctrl -F -a "Save as" -b add,above'
 
 	while True:
 
 		src = os.path.join(obs_save_path, latest_file)
+
+		os.popen('sleep 1 && wmctrl -F -a "Save as" -b add,above &')
 		new_name = os.popen(cmd).read().strip()
-		dest = os.path.join(obs_save_path, new_name)
 
 		if new_name == "":
-			ans = os.popen('zenity --question --text="Delete recording?"').close()
+			os.popen('sleep 1 && wmctrl -F -a "Important!" -b add,above &')
+			ans = os.popen('zenity --question --window-icon="warning" --title="Important!" --text="Delete recording?"').close()
 			if bool(ans) == False:
 				os.remove(src)
+				os.popen('notify-send -i /usr/share/icons/HighContrast/scalable/actions/dialog-cancel.svg "Deleted recording"')
 				break
+			continue
+
+		dest = os.path.realpath(os.path.join(obs_save_path, new_name))
 
 		try:
 			os.renames(src, dest)
-			head, tail = os.path.split(new_name)
-			head = os.path.join(obs_save_path, head)
-			os.popen('notify-send "Saved recording as %s" "at %s"' % (tail, head))
+
+			head, tail = os.path.split(dest)
+			os.popen('notify-send -i /usr/share/icons/HighContrast/scalable/actions/dialog-ok.svg "Saved recording as %s" "at %s/"' % (tail, head))
+
 			break
 
 		except Exception as e:
-			os.popen('zenity --error --width=300 --text="%s"' % str(e))
+			os.popen('zenity --error --window-icon="error" --width=300 --text="%s" &' % str(e))
 
 
 def start():
