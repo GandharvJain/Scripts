@@ -5,13 +5,54 @@ import os
 
 # nvidia prime profiles: "nvidia", "intel" and "on-demand"
 prime_profile = os.popen('prime-select query').read().strip()
+
 obs_profile = "Nvidia"
 scene = "Chrome"
+obs_save_path = "/home/gandharv/Videos"
+log_file = "obs_log.txt"
+
 
 if prime_profile == "intel":
 	obs_profile = "Intel"
 
 obs_pid = os.popen("pgrep -x obs").read().strip()
+
+
+def renameDialog():
+
+	file_list = []
+	for (dirPath, dirNames, fileNames) in os.walk(obs_save_path):
+		file_list.extend(os.path.join(dirPath, file) for file in fileNames if file != log_file)
+
+	latest_file = max(file_list, key=os.path.getctime).replace(obs_save_path + '/', '')
+
+
+	cmd = 'zenity --entry --width=300 --height=100 --title="Save as" --text="Enter recording name:" --entry-text='
+	cmd += latest_file
+	cmd += ' && sleep 1 && wmctrl -F -a "Save as" -b add,above'
+
+	while True:
+
+		src = os.path.join(obs_save_path, latest_file)
+		new_name = os.popen(cmd).read().strip()
+		dest = os.path.join(obs_save_path, new_name)
+
+		if new_name == "":
+			ans = os.popen('zenity --question --text="Delete recording?"').close()
+			if bool(ans) == False:
+				os.remove(src)
+				break
+
+		try:
+			os.renames(src, dest)
+			head, tail = os.path.split(new_name)
+			head = os.path.join(obs_save_path, head)
+			os.popen('notify-send "Saved recording as %s" "at %s"' % (tail, head))
+			break
+
+		except Exception as e:
+			os.popen('zenity --error --width=300 --text="%s"' % str(e))
+
 
 def start():
 	command = "snap run obs-studio --profile " + obs_profile + " --scene " + scene + " --startrecording --minimize-to-tray"
@@ -21,16 +62,17 @@ def start():
 	output = output.decode()
 	p_status = p.wait()
 
-	f = open("/home/gandharv/obs_log.txt", "w+")
+	f = open(os.path.join(obs_save_path, log_file), "w+")
 	f.write(output + "\nReturn Code: " + str(p_status))
+
 
 def end():
 	stop_recording_hotkey = "ctrl+alt+R"
 	os.popen("xdotool key " + stop_recording_hotkey)
-	os.popen("sleep 1 && kill -9 " + obs_pid.split()[0])
+	os.popen("sleep 5 && kill -9 " + obs_pid.split()[0])
+	renameDialog()
 
 
-# print(obs_pid)
 if not obs_pid:
 	start()
 else:
