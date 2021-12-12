@@ -15,7 +15,7 @@ log_file = "obs_log.txt"
 if prime_profile == "intel":
 	obs_profile = "Intel"
 
-obs_pid = os.popen("pgrep -x obs").read().strip()
+obs_pid = os.popen("pgrep -x obs -d' '").read().strip()
 
 
 def renameDialog():
@@ -75,7 +75,7 @@ def start():
 def end():
 	stop_recording_hotkey = "ctrl+alt+R"
 	os.popen("xdotool key " + stop_recording_hotkey)
-	os.popen("sleep 5 && kill -9 " + obs_pid.split()[0])
+	os.popen("sleep 5 && kill -9 " + obs_pid)
 	renameDialog()
 
 
