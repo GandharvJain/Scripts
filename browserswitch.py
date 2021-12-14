@@ -18,7 +18,7 @@ def currentwin():
 def sort(windows):
 
     # requesting pids of favourite apps in desired order
-    favourites_pids = os.popen('pidof nautilus-desktop Discord nautilus chrome sublime_text spotify gnome-terminal-server teams-insiders okular').read().strip().split()
+    favourites_pids = os.popen('pidof nautilus-desktop Discord nautilus chrome sublime_text spotify gnome-terminal-server teams-insiders okular-bin').read().strip().split()
     
     sortedWinIds = []
     unsortedWinIds = list(list(zip(*windows))[0])
@@ -51,13 +51,13 @@ option:
         exit()
     option = sys.argv[1]
     if option == 'left':
-        if index == 1:
-            index = 0
+        # if index == 1:
+        #     index = 0
         newwin = windows[index-1]
     else:
         if index+1 == len(windows):
             # the rightmost window, switch to the leftmost window, not desktop
-            newwin = windows[1]
+            newwin = windows[0]
         else:
             # normal behaviour
             newwin = windows[index+1]
