@@ -3,6 +3,9 @@
 import subprocess
 import os
 
+# Requirements: OBS, pgrep, kill and xdotool
+# For rename dialog: zenity, wmctrl and notify-send
+
 # Set scene and profile name
 obs_profile = "Nvidia"
 scene = "Chrome"
