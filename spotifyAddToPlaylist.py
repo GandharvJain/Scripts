@@ -4,10 +4,6 @@ import math as m
 # For 1920x1080 screen
 
 
-def toStr(x, y):
-	return str(x) + " " + str(y)
-
-
 def hex2rgb(value):
 	r = int(value[1:3], 16)
 	g = int(value[3:5], 16)
@@ -35,7 +31,7 @@ def spotifyAdd():
 	y0 = 1030
 
 	# Switching to Spotify and moving mouse to song name
-	os.popen("xdotool windowactivate --sync %s mousemove --sync %s sleep 0.1" % (spotifyWinId, toStr(x0, y0)))
+	os.popen( "xdotool windowactivate --sync %s mousemove --sync %s %s sleep 0.1" % (spotifyWinId, x0, y0) )
 
 	# Check for "Already added" popup by
 	# taking color of pixel at (950, 570) (might need experimenting to get coordinates right)
@@ -54,9 +50,9 @@ def spotifyAdd():
 
 	# Right click on song name then left click on "Add to playlist" button
 	# then left click on playlist name and restore original window and mouse location
-	command = "xdotool click 3 mousemove --sync " + toStr(x0+95, y0-70) + " click 1"+\
-	" mousemove --sync " + toStr(x0+280, y0-40*(2+rank)) + " click 1"+\
-	" windowactivate " + initialWinId + " mousemove " + toStr(x_init, y_init)
+	command = "xdotool click 3 mousemove --sync %s %s click 1 " % (x0+95, y0-70)
+	command += "mousemove --sync %s %s click 1 " % (x0+280, y0-40*(2+rank))
+	command += "windowactivate %s mousemove %s %s" % (initialWinId, x_init, y_init)
 
 	os.popen(command)
 
