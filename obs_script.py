@@ -8,7 +8,7 @@ import os
 
 # Set scene and profile name
 obs_profile = "Nvidia"
-scene = "Chrome"
+scene = "Teams"
 # Must be the same as the one in OBS
 obs_save_path = "/home/gandharv/Videos"
 # Name for log file
@@ -22,6 +22,11 @@ if prime_profile == "intel":
 
 # Get pid of OBS if already open
 obs_pid = os.popen("pgrep -x obs -d' '").read().strip()
+
+# Record Google Chrome if MS Teams is not open
+MsTeams_pid = os.popen("pgrep -x teams-insiders -d' '").read().strip()
+if not MsTeams_pid:
+	scene = "Chrome"
 
 
 def renameDialog():
@@ -88,7 +93,7 @@ def renameDialog():
 def startRecording():
 	
 	# Starts OBS, change if not installed from snap store
-	command = "snap run obs-studio --profile " + obs_profile + " --scene " + scene + " --startrecording --minimize-to-tray"
+	command = "snap run obs-studio --profile " + obs_profile + " --scene " + scene + " --startrecording"
 	p = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
 
 	# piping output of command to "output"
