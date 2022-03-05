@@ -18,7 +18,7 @@ def currentwin():
 def sort(windows):
 
     # requesting pids of favourite apps in desired order
-    favourites_pids = os.popen('pidof nautilus-desktop Discord nautilus chrome sublime_text spotify gnome-terminal-server teams-insiders okular-bin').read().strip().split()
+    favourites_pids = os.popen('pidof nautilus-desktop Discord nautilus chrome sublime_text spotify gnome-terminal-server teams okular-bin').read().strip().split()
     
     sortedWinIds = []
     unsortedWinIds = list(list(zip(*windows))[0])

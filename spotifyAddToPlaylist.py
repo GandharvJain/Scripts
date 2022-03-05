@@ -34,8 +34,8 @@ def spotifyAdd():
 	os.popen( "xdotool windowactivate --sync %s mousemove --sync %s %s sleep 0.1" % (spotifyWinId, x0, y0) )
 
 	# Check for "Already added" popup by
-	# taking color of pixel at (950, 570) (might need experimenting to get coordinates right)
-	pxl_clr_cmd = "xwd -id %s -silent | convert xwd:- -depth 8 -crop 1x1+950+570 txt:- | grep -om1 '#\w\+'" % spotifyWinId
+	# taking color of pixel at (960, 570) (might need experimenting to get coordinates right)
+	pxl_clr_cmd = "xwd -id %s -silent | convert xwd:- -depth 8 -crop 1x1+960+570 txt:- | grep -om1 '#\w\+'" % spotifyWinId
 	color = os.popen(pxl_clr_cmd).read().strip()
 	# print(color)
 

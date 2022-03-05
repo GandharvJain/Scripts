@@ -24,7 +24,7 @@ if prime_profile == "intel":
 obs_pid = os.popen("pgrep -x obs -d' '").read().strip()
 
 # Record Google Chrome if MS Teams is not open
-MsTeams_pid = os.popen("pgrep -x teams-insiders -d' '").read().strip()
+MsTeams_pid = os.popen("pgrep -x teams -d' '").read().strip()
 if not MsTeams_pid:
 	scene = "Chrome"
 
