@@ -64,7 +64,7 @@ def renameDialog():
 
 			if bool(ans) == False:
 				# Deleting recording
-				os.remove(src)
+				os.popen('gvfs-trash %s' % src)
 
 				icon_path_0 = "/usr/share/icons/HighContrast/scalable/actions/dialog-cancel.svg"
 				os.popen('notify-send -i %s "Deleted recording"' % icon_path_0)
