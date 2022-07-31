@@ -17,7 +17,7 @@ while true; do
 	# Asking user before relogin
 	zenity --question --window-icon="warning" --title="Warning!" --text="Relogin to wifi in 30s. Continue?" --timeout=30
 	userChoice=$?
-	if [ userChoice -eq 1 ]; then
+	if [ $userChoice -eq 1 ]; then
 		echo "Skipped relogin. Sleeping for 1 hr.."
 		sleep 3600
 		continue
@@ -35,8 +35,8 @@ while true; do
 		-X POST http://192.168.249.1:1000 2>&1)
 
 	retVal=$?
-	if [ retVal -eq 0 ]; then
-		echo "Logged in at $(date)!"
+	if [ $retVal -eq 0 ]; then
+		echo "Logged in at $(date)"
 	else
 		echo "Error logging in!"
 		exit retVal
