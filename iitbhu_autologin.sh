@@ -13,13 +13,27 @@ ROLL='20124018'
 LOGIN_LINK='http://192.168.249.1:1000/login?'
 
 while true; do
-	echo "Logging out..."
-	curl http://192.168.249.1:1000/logout?
-	
-	MAGIC=$(curl --silent -X GET http://192.168.249.1:1000/login? 2>&1 | grep -E "magic" | awk -F'"' '{print $6}')
 
-	echo "Logging in..."
-	CURL_OUTPUT=$(curl --silent -d "4Tredir=${LOGIN_LINK}&magic=${MAGIC}&=&username=${ROLL}&password=${PASS}" -X POST http://192.168.249.1:1000 2>&1)
+	# Asking user before relogin
+	zenity --question --window-icon="warning" --title="Warning!" --text="Relogin to wifi in 30s. Continue?" --timeout=30
+	userChoice=$?
+	if [ userChoice -eq 1 ]; then
+		echo "Skipped relogin. Sleeping for 1 hr.."
+		sleep 3600
+		continue
+	fi
+
+	echo "Logging out.."
+	curl --connect-timeout 5 http://192.168.249.1:1000/logout?
+	
+	MAGIC=$(curl --connect-timeout 5 --silent \
+		-X GET http://192.168.249.1:1000/login? 2>&1 | grep -E "magic" | awk -F'"' '{print $6}')
+
+	echo "Logging in.."
+	CURL_OUTPUT=$(curl --connect-timeout 5 --silent \
+		-d "4Tredir=${LOGIN_LINK}&magic=${MAGIC}&=&username=${ROLL}&password=${PASS}" \
+		-X POST http://192.168.249.1:1000 2>&1)
+
 	retVal=$?
 	if [ retVal -eq 0 ]; then
 		echo "Logged in at $(date)!"
@@ -28,7 +42,7 @@ while true; do
 		exit retVal
 	fi
 
-	echo "Sleeping..."
+	echo "Sleeping for 2 hrs.."
 	sleep 7200
 done
 
