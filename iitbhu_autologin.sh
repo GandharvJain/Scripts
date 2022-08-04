@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Checking if connected to IIT (BHU)
-curl --connect-timeout 5 -I http://192.168.249.1:1000/login?
+curl  --silent --connect-timeout 5 -I http://192.168.249.1:1000/login?
 if [ $? -eq 28 ]; then
 	echo "Not connected to the wifi IIT(BHU)!"
 	exit $retVal
@@ -13,6 +13,7 @@ ROLL='20124018'
 LOGIN_LINK='http://192.168.249.1:1000/login?'
 
 while true; do
+	echo "Attempting relogin at $(date)"
 
 	# Asking user before relogin
 	zenity --question --window-icon="warning" --title="Warning!" --text="Relogin to wifi in 30s. Continue?" --timeout=30
@@ -24,7 +25,7 @@ while true; do
 	fi
 
 	echo "Logging out.."
-	curl --connect-timeout 5 http://192.168.249.1:1000/logout?
+	LOGOUT_OUTPUT=$(curl --silent --connect-timeout 5 http://192.168.249.1:1000/logout?)
 	
 	MAGIC=$(curl --connect-timeout 5 --silent \
 		-X GET http://192.168.249.1:1000/login? 2>&1 | grep -E "magic" | awk -F'"' '{print $6}')
@@ -36,7 +37,7 @@ while true; do
 
 	retVal=$?
 	if [ $retVal -eq 0 ]; then
-		echo "Logged in at $(date)"
+		echo "Logged in!"
 	else
 		echo "Error logging in!"
 		exit retVal
