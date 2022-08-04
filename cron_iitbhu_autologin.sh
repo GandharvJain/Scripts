@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Add this script to a scheduling system to run every x hours or so
+
 # Checking if connected to IIT (BHU)
 curl  --silent --connect-timeout 5 -I http://192.168.249.1:1000/login?
 if [ $? -eq 28 ]; then
