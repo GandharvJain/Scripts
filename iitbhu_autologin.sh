@@ -40,7 +40,7 @@ while true; do
 		echo "Logged in!"
 	else
 		echo "Error logging in!"
-		exit retVal
+		exit $retVal
 	fi
 
 	echo "Sleeping for 2 hrs.."

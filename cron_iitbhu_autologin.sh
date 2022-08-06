@@ -1,10 +1,11 @@
 #!/bin/bash
 
 # Add this script to a scheduling system to run every x hours or so
+echo "Attempting relogin at $(date)"
 
 # Checking if connected to IIT (BHU)
 curl  --silent --connect-timeout 5 -I http://192.168.249.1:1000/login?
-if [ $? -eq 28 ]; then
+if [ $? -ne 52 ]; then
 	echo "Not connected to the wifi IIT(BHU)!"
 	exit $retVal
 fi
@@ -14,10 +15,11 @@ PASS=$(cat /home/gandharv/Scripts/iitbhu_wifi_pass.txt)
 ROLL='20124018'
 LOGIN_LINK='http://192.168.249.1:1000/login?'
 
-echo "Attempting relogin at $(date)"
+# Making the warning dialog "Always on top"
+sleep 1 && wmctrl -F -a "Relogin Warning!" -b add,above &
 
 # Asking user before relogin
-zenity --question --window-icon="warning" --title="Warning!" --text="Relogin to wifi in 30s. Continue?" --timeout=30
+zenity --question --window-icon="warning" --title="Relogin Warning!" --text="Relogin to wifi in 30s. Continue?" --timeout=30
 userChoice=$?
 if [ $userChoice -eq 1 ]; then
 	echo "Skipped relogin"
@@ -40,5 +42,5 @@ if [ $retVal -eq 0 ]; then
 	echo "Logged in!"
 else
 	echo "Error logging in!"
-	exit retVal
+	exit $retVal
 fi
