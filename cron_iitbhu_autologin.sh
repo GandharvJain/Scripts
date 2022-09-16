@@ -3,6 +3,15 @@
 # Add this script to a scheduling system to run every x hours or so
 echo "Attempting relogin at $(date)"
 
+# Skip relogin if recently logged in
+LAST_LOGIN=$(< /home/gandharv/Scripts/lastLogin.txt)
+TIME_SINCE_LOGIN=$(expr $(date +%s) - $LAST_LOGIN)
+LOGIN_COOLDOWN=$(expr 8 '*' 60 '*' 60)
+if ((TIME_SINCE_LOGIN < LOGIN_COOLDOWN)); then
+	echo "Already logged in recently"
+	exit 1
+fi
+
 # Checking if connected to IIT (BHU)
 curl  --silent --connect-timeout 5 -I http://192.168.249.1:1000/login?
 if [ $? -ne 52 ]; then
@@ -40,6 +49,7 @@ CURL_OUTPUT=$(curl --connect-timeout 5 --silent \
 retVal=$?
 if [ $retVal -eq 0 ]; then
 	echo "Logged in!"
+	echo "$(date +%s)" > /home/gandharv/Scripts/lastLogin.txt
 else
 	echo "Error logging in!"
 	exit $retVal
