@@ -9,7 +9,11 @@ TIME_SINCE_LOGIN=$(expr $(date +%s) - $LAST_LOGIN)
 LOGIN_COOLDOWN=$(expr 8 '*' 60 '*' 60)
 if ((TIME_SINCE_LOGIN < LOGIN_COOLDOWN)); then
 	echo "Already logged in recently"
-	exit 1
+	if test "$1" = "-f"; then
+		echo "Ignoring last login.."
+	else
+		exit 1
+	fi
 fi
 
 # Checking if connected to IIT (BHU)
