@@ -6,7 +6,7 @@ echo "Attempting relogin at $(date)"
 # Skip relogin if recently logged in
 LAST_LOGIN=$(< /home/gandharv/Scripts/lastLogin.txt)
 TIME_SINCE_LOGIN=$(expr $(date +%s) - $LAST_LOGIN)
-LOGIN_COOLDOWN=$(expr 8 '*' 60 '*' 60)
+LOGIN_COOLDOWN=$(expr 4 '*' 60 '*' 60 - 5 '*' 60)
 if ((TIME_SINCE_LOGIN < LOGIN_COOLDOWN)); then
 	echo "Already logged in recently"
 	if test "$1" = "-f"; then
