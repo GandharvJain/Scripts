@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Add this script to a scheduling system to run every x hours or so
-echo "Attempting relogin at $(date +'%A %d %b %Y %T %Z')"
+echo "Attempting relogin at $(date +'%A %d %B %Y %T %Z')"
 
 # Skip relogin if recently logged in
 LAST_LOGIN=$(< /home/gandharv/Scripts/lastLogin.txt)
