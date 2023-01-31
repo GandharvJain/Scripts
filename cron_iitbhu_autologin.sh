@@ -28,15 +28,18 @@ PASS=$(cat /home/gandharv/Scripts/iitbhu_wifi_pass.txt)
 ROLL='20124018'
 LOGIN_LINK='http://192.168.249.1:1000/login?'
 
-# Making the warning dialog "Always on top"
-sleep 1 && wmctrl -F -a "Relogin Warning!" -b add,above &
+# Don't show relogin warning dialog if -f option is present
+if test "$1" != "-f"; then
+	# Making the warning dialog "Always on top"
+	sleep 1 && wmctrl -F -a "Relogin Warning!" -b add,above &
 
-# Asking user before relogin
-zenity --question --window-icon="warning" --title="Relogin Warning!" --text="Relogin to wifi in 30s. Continue?" --timeout=30
-userChoice=$?
-if [ $userChoice -eq 1 ]; then
-	echo "Skipped relogin"
-	exit $userChoice
+	# Asking user before relogin
+	zenity --question --window-icon="warning" --title="Relogin Warning!" --text="Relogin to wifi in 30s. Continue?" --timeout=30
+	userChoice=$?
+	if [ $userChoice -eq 1 ]; then
+		echo "Skipped relogin"
+		exit $userChoice
+	fi
 fi
 
 echo "Logging out.."
