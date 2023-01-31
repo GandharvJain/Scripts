@@ -4,3 +4,6 @@
 * obs_script.py: Opens obs and starts recording given scene and profile / stops recording and closes obs, to be used as a toggle. 
 Also, shows a popup to rename or delete recording.
 * obs\_window\_selector.py: Change window in 'window capture' source to the focused window in OBS.
+* courses_crawler.py: Download course details as pdf from 'courses.iitbhu.ac.in'
+* cron\_iitbhu\_autologin.sh: Autologin into iit bhu wifi [once]
+* iitbhu\_autologin.sh: Autologin into iit bhu wifi [loop]
