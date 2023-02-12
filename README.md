@@ -7,3 +7,4 @@ Also, shows a popup to rename or delete recording.
 * courses_crawler.py: Download course details as pdf from 'courses.iitbhu.ac.in'
 * cron\_iitbhu\_autologin.sh: Autologin into iit bhu wifi [once]
 * iitbhu\_autologin.sh: Autologin into iit bhu wifi [loop]
+* cron\_iitbhu\_autologin.py: Autologin into iit bhu wifi in python without dialog [once]
