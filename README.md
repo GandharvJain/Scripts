@@ -8,4 +8,4 @@ Also, shows a popup to rename or delete recording.
 * **cron\_iitbhu\_autologin.sh**: Autologin into iit bhu wifi [once]
 * **iitbhu\_autologin.sh**: Autologin into iit bhu wifi [loop]
 * **cron\_iitbhu\_autologin.py**: Autologin into iit bhu wifi in python without dialog [once]
-* **lens.sh**: Do OCR on screen clipping
+* **lens.sh**: Do OCR on screen clipping. [Copied from here](https://gist.github.com/mnofresno/25d0cc6a45aa8644596705c78382304e).
