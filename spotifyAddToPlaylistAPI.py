@@ -34,11 +34,9 @@ def main():
 		with concurrent.futures.ThreadPoolExecutor() as executor:
 			futures = []
 			offset = 0
-			while True:
+			while offset <= playlist_size:
 				futures.append(executor.submit(get_playlist_tracks, offset, current_track_uri))
 				offset += 100
-				if offset >= playlist_size:
-					break
 			playlist_contains_track = any(future.result() for future in concurrent.futures.as_completed(futures))
 
 		if not playlist_contains_track:
