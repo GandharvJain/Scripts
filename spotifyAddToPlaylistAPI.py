@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import spotipy
-import spotipy.util as util
 import concurrent.futures
+from os import popen
 
 def main():
 	# Spotify API credentials
@@ -11,7 +11,7 @@ def main():
 	scope = 'playlist-modify-public user-read-currently-playing'
 
 	# Spotify API user credentials
-	token = util.prompt_for_user_token(username, scope, client_id=client_id, client_secret=client_secret, redirect_uri=redirect_uri)
+	token = spotipy.util.prompt_for_user_token(username, scope, client_id=client_id, client_secret=client_secret, redirect_uri=redirect_uri)
 
 	if token:
 		# Create a Spotipy instance
@@ -22,8 +22,8 @@ def main():
 		current_track_uri = current_track['item']['uri']
 		current_track_name = current_track['item']['name']
 		current_track_artists = ", ".join([artist['name'] for artist in current_track['item']['artists']])
-		# Get the playlist ID you want to add the track to
 
+		# Get size of playlist
 		playlist_size = int(sp.playlist(playlist_id, fields='tracks')['tracks']['total'])
 
 		def get_playlist_tracks(offset, track_uri):
@@ -45,11 +45,14 @@ def main():
 			# Add the current track to the playlist
 			sp.user_playlist_add_tracks(username, playlist_id, [current_track_uri])
 			print(f"Added '{current_track_name}' by '{current_track_artists}' to playlist!")
+			popen(f"notify-send \"Added to playlist\" \"'{current_track_name}' by '{current_track_artists}'\"")
 		else:
 			print(f"Track '{current_track_name}' by '{current_track_artists}' is already in the playlist!")
+			popen(f"notify-send \"Track is already in the playlist!\" \"'{current_track_name}' by '{current_track_artists}'\"")
 
 	else:
-		print("Can't get token for", username)
+		print(f"Can't get token for {username}")
+		popen(f"notify-send \"Can\'t get token for {username}\"")
 
 if __name__ == '__main__':
 	main()
