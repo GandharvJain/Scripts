@@ -1,4 +1,4 @@
-#!/bin/python3
+#!/usr/bin/env python3
 
 # Add this script to a scheduling system to run every x hours or so
 import time
@@ -12,7 +12,7 @@ username = '20124018'
 login_link = 'http://192.168.249.1:1000/login?'
 logout_link = 'http://192.168.249.1:1000/logout?'
 
-with open('/home/gandharv/Scripts/lastLogin.txt') as f:
+with open('/home/gandharv/Scripts/secrets/lastLogin.txt') as f:
 	last_login = int(f.readline().strip('\n'))
 
 opts, args = getopt.getopt(sys.argv[1:], "i")
@@ -40,7 +40,7 @@ except:
 	print("Not connected to the wifi IIT(BHU)!")
 	sys.exit()
 
-with open('/home/gandharv/Scripts/iitbhu_wifi_pass.txt') as f:
+with open('/home/gandharv/Scripts/secrets/iitbhu_wifi_pass.txt') as f:
 	password = f.readline().strip('\n')
 
 print("Logging out..")
@@ -54,7 +54,7 @@ try:
 	data = parse.urlencode({'4Tredir': login_link, 'magic': magic, 'username': username, 'password': password}).encode()
 	curl_output = request.urlopen('http://192.168.249.1:1000', timeout=3, data=data)
 	print("Logged in!")
-	with open('/home/gandharv/Scripts/lastLogin.txt', 'w') as f:
+	with open('/home/gandharv/Scripts/secrets/lastLogin.txt', 'w') as f:
 		f.write(str(int(time.time())))
 except:
 	print("Error logging in!")

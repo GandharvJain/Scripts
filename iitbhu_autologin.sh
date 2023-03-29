@@ -8,7 +8,7 @@ if [ $? -eq 28 ]; then
 fi
 
 # Setting up params
-PASS=$(cat /home/gandharv/Scripts/iitbhu_wifi_pass.txt)
+PASS=$(cat /home/gandharv/Scripts/secrets/iitbhu_wifi_pass.txt)
 ROLL='20124018'
 LOGIN_LINK='http://192.168.249.1:1000/login?'
 

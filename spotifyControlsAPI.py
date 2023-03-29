@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 import spotipy
 import concurrent.futures
 from os import popen
@@ -11,10 +12,12 @@ def getSpotipyInstance():
 	global username
 	global playlist_id
 	# Spotify API credentials
-	with open('/home/gandharv/Scripts/spotify_creds.txt') as f:
+	with open('/home/gandharv/Scripts/secrets/spotify_creds.txt') as f:
 		creds = f.read().splitlines()
 		client_id, client_secret, redirect_uri, username, playlist_id = creds
-	scope = 'playlist-modify-public user-read-currently-playing user-modify-playback-state user-read-playback-state'
+	scope = 'playlist-modify-public user-read-currently-playing '
+	scope += 'user-modify-playback-state user-read-playback-state '
+	scope += 'user-library-read user-library-modify'
 
 	# Spotify API user credentials
 	token = spotipy.util.prompt_for_user_token(username, scope, client_id=client_id, client_secret=client_secret, redirect_uri=redirect_uri)
@@ -38,12 +41,14 @@ def addToPlaylist():
 	# Get size of playlist
 	playlist_size = int(sp.playlist(playlist_id, fields='tracks')['tracks']['total'])
 
+	# Function executed in parallel
 	def get_playlist_tracks(offset, track_uri):
 		temp_tracks = sp.playlist_tracks(playlist_id, limit=100, offset=offset)['items']
 		return any(track['track']['uri'] == track_uri for track in temp_tracks)
 
+	# Checking if playlist already contains track
 	playlist_contains_track = False
-	with concurrent.futures.ThreadPoolExecutor() as executor:
+	with concurrent.futures.ThreadPoolExecutor(max_workers=16) as executor:
 		futures = []
 		offset = 0
 		while offset <= playlist_size:
@@ -51,23 +56,34 @@ def addToPlaylist():
 			offset += 100
 		playlist_contains_track = any(future.result() for future in concurrent.futures.as_completed(futures))
 
+	# Adding track to saved tracks if not already added
+	added_to_saved_tracks = False
+	if not sp.current_user_saved_tracks_contains([current_track_uri])[0]:
+		sp.current_user_saved_tracks_add([current_track_uri])
+		added_to_saved_tracks = True
+
+	container = "playlist"
 	if not playlist_contains_track:
 		# Add the current track to the playlist
 		sp.user_playlist_add_tracks(username, playlist_id, [current_track_uri])
-		print(f"Added '{current_track_name}' by '{current_track_artists}' to playlist!")
 
-		title = "Added to playlist!"
+		if added_to_saved_tracks:
+			container += " and saved tracks"
+		title = f"Added to {container}"
 		message = f"'{current_track_name}' by '{current_track_artists}'"
 		icon_path = "/usr/share/icons/Yaru/256x256/actions/dialog-yes.png"
 		popen(f'notify-send "{title}" "{message}" -i {icon_path}')
+		print(title, ": ", message)
 
 	else:
-		print(f"Track '{current_track_name}' by '{current_track_artists}' is already in the playlist!")
-
-		title = "Track is already in the playlist!"
+		# Not adding the track to avoid duplicates
+		if not added_to_saved_tracks:
+			container += " and saved tracks"
+		title = f"Track is already in the {container}"
 		message = f"'{current_track_name}' by '{current_track_artists}'"
 		icon_path = "/usr/share/icons/Yaru/256x256/actions/dialog-no.png"
 		popen(f'notify-send "{title}" "{message}" -i {icon_path}')
+		print(title, ": ", message)
 
 def playerControl(action):
 	sp = getSpotipyInstance()

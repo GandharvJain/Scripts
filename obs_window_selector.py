@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import os
 
@@ -14,7 +14,7 @@ def select():
 	# getWindow = "xdotool selectwindow"
 
 	# Set full path for password file
-	pass_file = "/home/gandharv/Scripts/password.txt"
+	pass_file = "/home/gandharv/Scripts/secrets/obs_password.txt"
 
 	windowId = os.popen(getWindow).read().strip()
 

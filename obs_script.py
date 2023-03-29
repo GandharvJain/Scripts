@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import subprocess
 import os
@@ -66,7 +66,7 @@ def renameDialog():
 				# Deleting recording
 				os.popen('gvfs-trash %s' % src)
 
-				icon_path_0 = "/usr/share/icons/HighContrast/scalable/actions/dialog-cancel.svg"
+				icon_path_0 = "/usr/share/icons/Yaru/256x256/actions/dialog-no.png"
 				os.popen('notify-send -i %s "Deleted recording"' % icon_path_0)
 
 				break
@@ -81,7 +81,7 @@ def renameDialog():
 			os.renames(src, dest)
 
 			head, tail = os.path.split(dest)
-			icon_path_1 = "/usr/share/icons/HighContrast/scalable/actions/dialog-ok.svg"
+			icon_path_1 = "/usr/share/icons/Yaru/256x256/actions/dialog-yes.png"
 			os.popen('notify-send -i %s "Saved recording as %s" "at %s/"' % (icon_path_1, tail, head))
 
 			break

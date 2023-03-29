@@ -1,6 +1,2 @@
-password.txt
-iitbhu_wifi_pass.txt
-autologin.log
-lastLogin.txt
 .cache*
-spotify_creds.txt
+secrets/
