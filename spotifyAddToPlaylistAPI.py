@@ -43,10 +43,19 @@ def main():
 			# Add the current track to the playlist
 			sp.user_playlist_add_tracks(username, playlist_id, [current_track_uri])
 			print(f"Added '{current_track_name}' by '{current_track_artists}' to playlist!")
-			popen(f"notify-send \"Added to playlist\" \"'{current_track_name}' by '{current_track_artists}'\"")
+
+			title = "Added to playlist!"
+			message = f"'{current_track_name}' by '{current_track_artists}'"
+			icon_path = "/usr/share/icons/Yaru/256x256/actions/dialog-yes.png"
+			popen(f'notify-send "{title}" "{message}" -i {icon_path}')
+
 		else:
 			print(f"Track '{current_track_name}' by '{current_track_artists}' is already in the playlist!")
-			popen(f"notify-send \"Track is already in the playlist!\" \"'{current_track_name}' by '{current_track_artists}'\"")
+
+			title = "Track is already in the playlist!"
+			message = f"'{current_track_name}' by '{current_track_artists}'"
+			icon_path = "/usr/share/icons/Yaru/256x256/actions/dialog-no.png"
+			popen(f'notify-send "{title}" "{message}" -i {icon_path}')
 
 	else:
 		print(f"Can't get token for {username}")
