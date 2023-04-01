@@ -4,9 +4,18 @@ import spotipy
 import concurrent.futures
 from os import popen
 import sys
+import time
 
 username = ''
 playlist_id = ''
+
+icon_green_tick = "/usr/share/icons/Yaru/256x256/actions/dialog-yes.png"
+icon_red_cross = "/usr/share/icons/Yaru/256x256/actions/dialog-no.png"
+icon_red_exclaimation = "/usr/share/icons/Yaru/256x256/emblems/emblem-important.png"
+
+def notify(title="No title", message="", icon_path=""):
+	print(title, ": ", message)
+	popen(f'notify-send "{title}" "{message}" -i "{icon_path}"')
 
 def getSpotipyInstance():
 	global username
@@ -26,17 +35,30 @@ def getSpotipyInstance():
 		sp = spotipy.Spotify(auth=token)
 		return sp
 	else:
-		print(f"Can't get token for {username}")
-		popen(f"notify-send \"Can\'t get token for {username}\"")
+		notify(f"Can't get token for {username}")
 		exit(1)
 
 def addToPlaylist():
 	sp = getSpotipyInstance()
 	# Get the currently playing track information
 	current_track = sp.current_user_playing_track()
+	if current_track is None:
+		notify("No device playing spotify!", "Aborting..", icon_red_exclaimation)
+		exit(1)
+
 	current_track_uri = current_track['item']['uri']
 	current_track_name = current_track['item']['name']
 	current_track_artists = ", ".join([artist['name'] for artist in current_track['item']['artists']])
+
+	# Checking if latest data
+	current_time_ms = time.time() // 0.001
+	fetched_time_ms = int(current_track['timestamp'])
+	song_progress_ms = int(current_track['progress_ms'])
+	time_since_last_fetched_ms = current_time_ms - fetched_time_ms
+	if time_since_last_fetched_ms > song_progress_ms + 1000:
+		notify("Fetched old data!", "Aborting..", icon_red_exclaimation)
+		exit(1)
+
 
 	# Get size of playlist
 	playlist_size = int(sp.playlist(playlist_id, fields='tracks')['tracks']['total'])
@@ -71,9 +93,7 @@ def addToPlaylist():
 			container += " and saved tracks"
 		title = f"Added to {container}"
 		message = f"'{current_track_name}' by '{current_track_artists}'"
-		icon_path = "/usr/share/icons/Yaru/256x256/actions/dialog-yes.png"
-		popen(f'notify-send "{title}" "{message}" -i {icon_path}')
-		print(title, ": ", message)
+		notify(title, message, icon_green_tick)
 
 	else:
 		# Not adding the track to avoid duplicates
@@ -81,21 +101,24 @@ def addToPlaylist():
 			container += " and saved tracks"
 		title = f"Track is already in the {container}"
 		message = f"'{current_track_name}' by '{current_track_artists}'"
-		icon_path = "/usr/share/icons/Yaru/256x256/actions/dialog-no.png"
-		popen(f'notify-send "{title}" "{message}" -i {icon_path}')
-		print(title, ": ", message)
+		notify(title, message, icon_red_cross)
 
 def playerControl(action):
 	sp = getSpotipyInstance()
+	playback_state = sp.current_playback()
+	if playback_state is None:
+		notify("No device playing spotify", "Aborting..", icon_red_exclaimation)
+		exit(1)
+
 	if action == 'next':
 		sp.next_track()
 	elif action == 'previous':
 		sp.previous_track()
 	else:
-		if sp.current_playback()['is_playing']:
+		if playback_state['is_playing']:
 			sp.pause_playback()
 		else:
-			sp.start_playback()		
+			sp.start_playback()
 
 if __name__ == '__main__':
 	if len(sys.argv) != 2 or sys.argv[1] not in ['play-pause', 'next', 'previous', 'add-to-playlist']:
