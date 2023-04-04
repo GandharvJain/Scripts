@@ -1,5 +1,7 @@
 #!/bin/bash
 
+wifi_pass_file='/home/gandharv/Scripts/secrets/iitbhu_wifi_pass.txt'
+
 # Checking if connected to IIT (BHU)
 curl  --silent --connect-timeout 5 -I http://192.168.249.1:1000/login?
 if [ $? -eq 28 ]; then
@@ -8,7 +10,7 @@ if [ $? -eq 28 ]; then
 fi
 
 # Setting up params
-PASS=$(cat /home/gandharv/Scripts/secrets/iitbhu_wifi_pass.txt)
+PASS=$(cat wifi_pass_file)
 ROLL='20124018'
 LOGIN_LINK='http://192.168.249.1:1000/login?'
 

@@ -1,10 +1,12 @@
 #!/bin/bash
 
+last_login_file='/home/gandharv/Scripts/secrets/lastLogin.txt'
+wifi_pass_file='/home/gandharv/Scripts/secrets/iitbhu_wifi_pass.txt'
+
 # Add this script to a scheduling system to run every x hours or so
 echo "Attempting relogin at $(date +'%A %d %B %Y %T %Z')"
-
 # Skip relogin if recently logged in
-LAST_LOGIN=$(< /home/gandharv/Scripts/secrets/lastLogin.txt)
+LAST_LOGIN=$(cat last_login_file)
 TIME_SINCE_LOGIN=$(expr $(date +%s) - $LAST_LOGIN)
 LOGIN_COOLDOWN=$(expr 4 '*' 60 '*' 60 - 5 '*' 60)
 if ((TIME_SINCE_LOGIN < LOGIN_COOLDOWN)); then
@@ -24,7 +26,7 @@ if [ $? -ne 52 ]; then
 fi
 
 # Setting up params
-PASS=$(cat /home/gandharv/Scripts/secrets/iitbhu_wifi_pass.txt)
+PASS=$(cat wifi_pass_file)
 ROLL='20124018'
 LOGIN_LINK='http://192.168.249.1:1000/login?'
 
@@ -56,7 +58,7 @@ CURL_OUTPUT=$(curl --connect-timeout 5 --silent \
 retVal=$?
 if [ $retVal -eq 0 ]; then
 	echo "Logged in!"
-	echo "$(date +%s)" > /home/gandharv/Scripts/secrets/lastLogin.txt
+	echo "$(date +%s)" > last_login_file
 else
 	echo "Error logging in!"
 	exit $retVal

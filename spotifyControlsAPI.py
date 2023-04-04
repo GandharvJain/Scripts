@@ -9,6 +9,7 @@ import time
 username = ''
 playlist_id = ''
 
+creds_file = '/home/gandharv/Scripts/secrets/spotify_creds.txt'
 icon_green_tick = "/usr/share/icons/Yaru/256x256/actions/dialog-yes.png"
 icon_red_cross = "/usr/share/icons/Yaru/256x256/actions/dialog-no.png"
 icon_red_exclaimation = "/usr/share/icons/Yaru/256x256/emblems/emblem-important.png"
@@ -21,7 +22,7 @@ def getSpotipyInstance():
 	global username
 	global playlist_id
 	# Spotify API credentials
-	with open('/home/gandharv/Scripts/secrets/spotify_creds.txt') as f:
+	with open(creds_file) as f:
 		creds = f.read().splitlines()
 		client_id, client_secret, redirect_uri, username, playlist_id = creds
 	scope = 'playlist-modify-public user-read-currently-playing '
@@ -29,7 +30,7 @@ def getSpotipyInstance():
 	scope += 'user-library-read user-library-modify'
 
 	# Spotify API user credentials
-	token = spotipy.util.prompt_for_user_token(username, scope, client_id=client_id, client_secret=client_secret, redirect_uri=redirect_uri)
+	token = spotipy.util.prompt_for_user_token(username, scope, client_id, client_secret, redirect_uri)
 	if token:
 		# Create a Spotipy instance
 		sp = spotipy.Spotify(auth=token)

@@ -6,6 +6,9 @@ import os
 # Requirements: OBS, pgrep, kill and xdotool
 # For rename dialog: zenity, wmctrl and notify-send
 
+icon_path_0 = "/usr/share/icons/Yaru/256x256/actions/dialog-no.png"
+icon_path_1 = "/usr/share/icons/Yaru/256x256/actions/dialog-yes.png"
+
 # Set scene and profile name
 obs_profile = "Nvidia"
 scene = "Teams"
@@ -65,8 +68,6 @@ def renameDialog():
 			if bool(ans) == False:
 				# Deleting recording
 				os.popen('gvfs-trash %s' % src)
-
-				icon_path_0 = "/usr/share/icons/Yaru/256x256/actions/dialog-no.png"
 				os.popen('notify-send -i %s "Deleted recording"' % icon_path_0)
 
 				break
@@ -81,7 +82,6 @@ def renameDialog():
 			os.renames(src, dest)
 
 			head, tail = os.path.split(dest)
-			icon_path_1 = "/usr/share/icons/Yaru/256x256/actions/dialog-yes.png"
 			os.popen('notify-send -i %s "Saved recording as %s" "at %s/"' % (icon_path_1, tail, head))
 
 			break
