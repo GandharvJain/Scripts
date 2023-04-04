@@ -25,7 +25,7 @@ def getSpotipyInstance():
 	with open(creds_file) as f:
 		creds = f.read().splitlines()
 		client_id, client_secret, redirect_uri, username, playlist_id = creds
-	scope = 'playlist-modify-public user-read-currently-playing '
+	scope = 'playlist-modify-public playlist-modify-private user-read-currently-playing '
 	scope += 'user-modify-playback-state user-read-playback-state '
 	scope += 'user-library-read user-library-modify'
 
@@ -119,7 +119,11 @@ def playerControl(action):
 		if playback_state['is_playing']:
 			sp.pause_playback()
 		else:
-			sp.start_playback()
+			# In private session 'is_playing' is always False but controls still work
+			try: sp.start_playback()
+			except:
+				try: sp.pause_playback()
+				except Exception as e: raise(e)
 
 if __name__ == '__main__':
 	if len(sys.argv) != 2 or sys.argv[1] not in ['play-pause', 'next', 'previous', 'add-to-playlist']:

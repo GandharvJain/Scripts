@@ -10,7 +10,7 @@ if [ $? -eq 28 ]; then
 fi
 
 # Setting up params
-PASS=$(cat wifi_pass_file)
+PASS=$(cat $wifi_pass_file)
 ROLL='20124018'
 LOGIN_LINK='http://192.168.249.1:1000/login?'
 
