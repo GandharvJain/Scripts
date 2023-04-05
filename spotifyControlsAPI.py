@@ -22,9 +22,13 @@ def getSpotipyInstance():
 	global username
 	global playlist_id
 	# Spotify API credentials
-	with open(creds_file) as f:
-		creds = f.read().splitlines()
-		client_id, client_secret, redirect_uri, username, playlist_id = creds
+	try:
+		with open(creds_file) as f:
+			creds = f.read().splitlines()
+			client_id, client_secret, redirect_uri, username, playlist_id = creds
+	except FileNotFoundError:
+		notify("Credentials file is missing!", "Aborting..", icon_red_exclaimation)
+		exit(1)
 	scope = 'playlist-modify-public playlist-modify-private user-read-currently-playing '
 	scope += 'user-modify-playback-state user-read-playback-state '
 	scope += 'user-library-read user-library-modify'
@@ -39,7 +43,7 @@ def getSpotipyInstance():
 		notify(f"Can't get token for {username}")
 		exit(1)
 
-def addToPlaylist():
+def playlistControls(option):
 	sp = getSpotipyInstance()
 	# Get the currently playing track information
 	current_track = sp.current_user_playing_track()
@@ -79,32 +83,63 @@ def addToPlaylist():
 			offset += 100
 		playlist_contains_track = any(future.result() for future in concurrent.futures.as_completed(futures))
 
-	# Adding track to saved tracks if not already added
-	added_to_saved_tracks = False
-	if not sp.current_user_saved_tracks_contains([current_track_uri])[0]:
-		sp.current_user_saved_tracks_add([current_track_uri])
-		added_to_saved_tracks = True
+	# If option is add-to-playlist
+	if option == 'add-to-playlist':
+		# Adding track to saved tracks if not already added
+		added_to_saved_tracks = False
+		if not sp.current_user_saved_tracks_contains([current_track_uri])[0]:
+			sp.current_user_saved_tracks_add([current_track_uri])
+			added_to_saved_tracks = True
 
-	container = "playlist"
-	if not playlist_contains_track:
-		# Add the current track to the playlist
-		sp.user_playlist_add_tracks(username, playlist_id, [current_track_uri])
+		container = "playlist"
+		if not playlist_contains_track:
+			# Add the current track to the playlist
+			sp.user_playlist_add_tracks(username, playlist_id, [current_track_uri])
 
-		if added_to_saved_tracks:
-			container += " and saved tracks"
-		title = f"Added to {container}"
-		message = f"'{current_track_name}' by '{current_track_artists}'"
-		notify(title, message, icon_green_tick)
+			if added_to_saved_tracks:
+				container += " and saved tracks"
+			title = f"Added to {container}"
+			message = f"'{current_track_name}' by '{current_track_artists}'"
+			notify(title, message, icon_green_tick)
 
-	else:
-		# Not adding the track to avoid duplicates
-		if not added_to_saved_tracks:
-			container += " and saved tracks"
-		title = f"Track is already in the {container}"
-		message = f"'{current_track_name}' by '{current_track_artists}'"
-		notify(title, message, icon_red_cross)
+		else:
+			# Not adding the track to avoid duplicates
+			if not added_to_saved_tracks:
+				container += " and saved tracks"
+			title = f"Track is already in the {container}"
+			message = f"'{current_track_name}' by '{current_track_artists}'"
+			notify(title, message, icon_red_cross)
 
-def playerControl(action):
+	# If option is remove-from-playlist
+	elif option == 'remove-from-playlist':
+		# Removing track from saved tracks if already added
+		removed_from_saved_tracks = False
+		if sp.current_user_saved_tracks_contains([current_track_uri])[0]:
+			sp.current_user_saved_tracks_delete([current_track_uri])
+			removed_from_saved_tracks = True
+
+		container = "playlist"
+		if playlist_contains_track:
+			# Remove the current track from the playlist
+			sp.user_playlist_remove_all_occurrences_of_tracks(username, playlist_id, [current_track_uri])
+
+			if removed_from_saved_tracks:
+				container += " and saved tracks"
+			title = f"Removed from {container}"
+			message = f"'{current_track_name}' by '{current_track_artists}'"
+			notify(title, message, icon_green_tick)
+
+		else:
+			# Not adding the track to avoid duplicates
+			if not removed_from_saved_tracks:
+				container += " and saved tracks"
+			title = f"Track is not in the {container}"
+			message = f"'{current_track_name}' by '{current_track_artists}'"
+			notify(title, message, icon_red_cross)
+
+
+
+def playerControls(action):
 	sp = getSpotipyInstance()
 	playback_state = sp.current_playback()
 	if playback_state is None:
@@ -125,8 +160,7 @@ def playerControl(action):
 				try: sp.pause_playback()
 				except Exception as e: raise(e)
 
-if __name__ == '__main__':
-	if len(sys.argv) != 2 or sys.argv[1] not in ['play-pause', 'next', 'previous', 'add-to-playlist']:
+def printHelp():
 		print(f'''
 Usage: {sys.argv[0]} options
 Supported options:
@@ -136,10 +170,15 @@ Supported options:
 	add-to-playlist:  move one app to the right in current workspace
 	help:   this help message
 ''')
-		exit()
+
+if __name__ == '__main__':
+	if len(sys.argv) != 2:
+		printHelp()
 
 	option = sys.argv[1]
-	if option == 'add-to-playlist':
-		addToPlaylist()
+	if option in ['add-to-playlist', 'remove-from-playlist']:
+		playlistControls(option)
+	elif option in ['play-pause', 'next', 'previous']:
+		playerControls(option)
 	else:
-		playerControl(option)
+		printHelp()
