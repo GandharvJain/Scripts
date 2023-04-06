@@ -9,6 +9,7 @@ import time
 username = ''
 playlist_id = ''
 
+log_file = '/home/gandharv/Scripts/secrets/spotipyScript.log'
 creds_file = '/home/gandharv/Scripts/secrets/spotify_creds.txt'
 icon_green_tick = "/usr/share/icons/Yaru/256x256/actions/dialog-yes.png"
 icon_red_cross = "/usr/share/icons/Yaru/256x256/actions/dialog-no.png"
@@ -25,7 +26,10 @@ def getSpotipyInstance():
 	try:
 		with open(creds_file) as f:
 			creds = f.read().splitlines()
-			client_id, client_secret, redirect_uri, username, playlist_id = creds
+			client_id, client_secret, redirect_uri, username, *playlist_ids = creds
+
+		# In case no playlist id is given or multiple are given
+		playlist_id = playlist_ids[0] if playlist_ids else ""
 	except FileNotFoundError:
 		notify("Credentials file is missing!", "Aborting..", icon_red_exclaimation)
 		exit(1)
@@ -43,7 +47,25 @@ def getSpotipyInstance():
 		notify(f"Can't get token for {username}")
 		exit(1)
 
-def playlistControls(option):
+def getAllPlaylistTrackURIs(sp, playlist_id):
+	# Get size of playlist
+	playlist_size = int(sp.playlist(playlist_id, fields='tracks')['tracks']['total'])
+
+	# Function executed in parallel
+	def getPlaylistTracks(offset):
+		temp_tracks = sp.playlist_tracks(playlist_id, limit=100, offset=offset)['items']
+		return [track['track']['uri'] for track in temp_tracks]
+
+	# Checking if playlist already contains track
+	tracks = list()
+	with concurrent.futures.ThreadPoolExecutor(max_workers=32) as executor:
+		futures = []
+		offsets = range(0, playlist_size, 100)
+		for fetched_tracks in executor.map(getPlaylistTracks, offsets):
+			tracks.extend(fetched_tracks)
+	return tracks
+
+def playlistControls(option, force_action=False):
 	sp = getSpotipyInstance()
 	# Get the currently playing track information
 	current_track = sp.current_user_playing_track()
@@ -60,53 +82,34 @@ def playlistControls(option):
 	fetched_time_ms = int(current_track['timestamp'])
 	song_progress_ms = int(current_track['progress_ms'])
 	time_since_last_fetched_ms = current_time_ms - fetched_time_ms
-	if time_since_last_fetched_ms > song_progress_ms + 1000:
+	if not force_action and time_since_last_fetched_ms > song_progress_ms + 1000:
 		notify("Fetched old data!", "Aborting..", icon_red_exclaimation)
 		exit(1)
 
-
-	# Get size of playlist
-	playlist_size = int(sp.playlist(playlist_id, fields='tracks')['tracks']['total'])
-
-	# Function executed in parallel
-	def get_playlist_tracks(offset, track_uri):
-		temp_tracks = sp.playlist_tracks(playlist_id, limit=100, offset=offset)['items']
-		return any(track['track']['uri'] == track_uri for track in temp_tracks)
-
-	# Checking if playlist already contains track
-	playlist_contains_track = False
-	with concurrent.futures.ThreadPoolExecutor(max_workers=16) as executor:
-		futures = []
-		offset = 0
-		while offset <= playlist_size:
-			futures.append(executor.submit(get_playlist_tracks, offset, current_track_uri))
-			offset += 100
-		playlist_contains_track = any(future.result() for future in concurrent.futures.as_completed(futures))
+	# Ignore existence of track in playlist if user forces, may cause duplicates
+	if not force_action:
+		playlist_contains_track = current_track_uri in getAllPlaylistTrackURIs(sp, playlist_id)
 
 	# If option is add-to-playlist
 	if option == 'add-to-playlist':
 		# Adding track to saved tracks if not already added
 		added_to_saved_tracks = False
-		if not sp.current_user_saved_tracks_contains([current_track_uri])[0]:
+		if force_action or not sp.current_user_saved_tracks_contains([current_track_uri])[0]:
 			sp.current_user_saved_tracks_add([current_track_uri])
 			added_to_saved_tracks = True
 
-		container = "playlist"
-		if not playlist_contains_track:
-			# Add the current track to the playlist
+		# Add the current track to the playlist
+		if force_action or not playlist_contains_track:
 			sp.user_playlist_add_tracks(username, playlist_id, [current_track_uri])
 
-			if added_to_saved_tracks:
-				container += " and saved tracks"
-			title = f"Added to {container}"
+			title = "Added to playlist"
+			title += " and saved tracks" if added_to_saved_tracks else ""
 			message = f"'{current_track_name}' by '{current_track_artists}'"
 			notify(title, message, icon_green_tick)
-
+		# Not adding the track to avoid duplicates
 		else:
-			# Not adding the track to avoid duplicates
-			if not added_to_saved_tracks:
-				container += " and saved tracks"
-			title = f"Track is already in the {container}"
+			title = "Track is already in the playlist"
+			title += " and saved tracks" if not added_to_saved_tracks else ""
 			message = f"'{current_track_name}' by '{current_track_artists}'"
 			notify(title, message, icon_red_cross)
 
@@ -114,30 +117,44 @@ def playlistControls(option):
 	elif option == 'remove-from-playlist':
 		# Removing track from saved tracks if already added
 		removed_from_saved_tracks = False
-		if sp.current_user_saved_tracks_contains([current_track_uri])[0]:
+		if force_action or sp.current_user_saved_tracks_contains([current_track_uri])[0]:
 			sp.current_user_saved_tracks_delete([current_track_uri])
 			removed_from_saved_tracks = True
 
-		container = "playlist"
-		if playlist_contains_track:
-			# Remove the current track from the playlist
+		# Remove the current track from the playlist
+		if force_action or playlist_contains_track:
 			sp.user_playlist_remove_all_occurrences_of_tracks(username, playlist_id, [current_track_uri])
 
-			if removed_from_saved_tracks:
-				container += " and saved tracks"
-			title = f"Removed from {container}"
+			title = "Removed from playlist"
+			title += " and saved tracks" if removed_from_saved_tracks else ""
 			message = f"'{current_track_name}' by '{current_track_artists}'"
 			notify(title, message, icon_green_tick)
-
+		# Not adding the track to avoid duplicates
 		else:
-			# Not adding the track to avoid duplicates
-			if not removed_from_saved_tracks:
-				container += " and saved tracks"
-			title = f"Track is not in the {container}"
+			title = f"Track is not in the playlist"
+			title += " and saved tracks" if not removed_from_saved_tracks else ""
 			message = f"'{current_track_name}' by '{current_track_artists}'"
 			notify(title, message, icon_red_cross)
 
+def removeDuplicates():
+	sp = getSpotipyInstance()
+	indexed_tracks = enumerate(getAllPlaylistTrackURIs(sp, playlist_id))
+	seen = set()
+	duplicates = dict()
+	for index, track in indexed_tracks:
+		duplicates.setdefault(track, []).append(index) if track in seen else seen.add(track)
 
+	tracks_to_remove = [{"uri": track, "positions": indices} for track, indices in duplicates.items()]
+	sp.user_playlist_remove_specific_occurrences_of_tracks(username, playlist_id, tracks_to_remove)
+
+	print(*tracks_to_remove, sep='\n')
+	if len(tracks_to_remove) != 0:
+		with open(log_file, 'w') as f:
+			print(*tracks_to_remove, file=f, sep='\n')
+
+	title = "Removed duplicates from playlist" if bool(tracks_to_remove) else "No duplicates"
+	message = f"Check {log_file} for removed tracks:" if bool(tracks_to_remove) else ""
+	notify(title, message, icon_green_tick)
 
 def playerControls(action):
 	sp = getSpotipyInstance()
@@ -162,23 +179,35 @@ def playerControls(action):
 
 def printHelp():
 		print(f'''
-Usage: {sys.argv[0]} options
+Usage: {args[0]} [options] [actions]
+Supported actions:
+	play-pause:                toggle playback
+	next:                      go to next song
+	previous:                  go to previous song
+	add-to-playlist:           add current song to playlist
+	remove-from-playlist:      remove current song from playlist
+	remove-duplicates:         remove duplicate songs from playlist
+	help:                      this help message
 Supported options:
-	play-pause:   move one window to the left
-	next:  move one window to the right
-	previous:   move one app to the left in current workspace
-	add-to-playlist:  move one app to the right in current workspace
-	help:   this help message
+	-f:                        force addition to (or removal from) playlist
+	                           (May create duplicates)
 ''')
 
 if __name__ == '__main__':
-	if len(sys.argv) != 2:
+	args = sys.argv
+	if len(args) < 2:
 		printHelp()
+		exit(1)
 
-	option = sys.argv[1]
+	force_action = '-f' in args[1:]
+	args.pop(args.index('-f')) if force_action else None
+
+	option = args[1]
 	if option in ['add-to-playlist', 'remove-from-playlist']:
-		playlistControls(option)
+		playlistControls(option, force_action)
 	elif option in ['play-pause', 'next', 'previous']:
 		playerControls(option)
+	elif option == 'remove-duplicates':
+		removeDuplicates()
 	else:
 		printHelp()
