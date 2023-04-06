@@ -209,8 +209,8 @@ Supported actions:
 	remove-saved-duplicates:        remove duplicate songs from saved tracks
 	help:                           this help message
 Supported options:
-	-f:                        force addition to (or removal from) playlist
-	                           (May create duplicates)
+	-f:                             force addition to (or removal from) playlist
+	                                (May create duplicates)
 ''')
 
 if __name__ == '__main__':
