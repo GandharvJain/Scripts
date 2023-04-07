@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 
 import spotipy
 import concurrent.futures
@@ -8,7 +8,7 @@ import time
 
 MAX_PLAYLIST_ITEMS = 100
 MAX_SAVED_TRACKS = 20
-MAX_THREADS = 128
+MAX_THREADS = 64
 LAST_FETCHED_SLACK_MS = 1000
 
 username = ''
@@ -107,7 +107,7 @@ def playlistControls(option, force_action=False):
 		playlist_contains_track = current_track_uri in getAllTrackURIs(sp, True, playlist_id)
 
 	# If option is add-to-playlist
-	if option == 'add-to-playlist':
+	if option in ['add-to-playlist', '-a']:
 		# Adding track to saved tracks if not already added
 		added_to_saved_tracks = False
 		if force_action or not sp.current_user_saved_tracks_contains([current_track_uri])[0]:
@@ -130,7 +130,7 @@ def playlistControls(option, force_action=False):
 			notify(title, message, icon_red_cross)
 
 	# If option is remove-from-playlist
-	elif option == 'remove-from-playlist':
+	elif option in ['remove-from-playlist', '-r']:
 		# Removing track from saved tracks if already added
 		removed_from_saved_tracks = False
 		if force_action or sp.current_user_saved_tracks_contains([current_track_uri])[0]:
@@ -152,7 +152,8 @@ def playlistControls(option, force_action=False):
 			message = f"'{current_track_name}' by '{current_track_artists}'"
 			notify(title, message, icon_red_cross)
 
-def removeDuplicates(isPlaylist):
+def removeDuplicates(option):
+	isPlaylist = option in ['remove-playlist-duplicates', '-rpd']
 	sp = getSpotipyInstance()
 	indexed_tracks = enumerate(getAllTrackURIs(sp, isPlaylist, playlist_id))
 	seen = set()
@@ -172,8 +173,8 @@ def removeDuplicates(isPlaylist):
 	print(*tracks_to_remove, sep='\n')
 
 	tracks_were_removed = bool(tracks_to_remove)
-	title = f"Removed duplicates from {'playlist' if isPlaylist else 'saved tracks'}"
-	title = title if tracks_were_removed else "No duplicates"
+	title = "Removed duplicates from " if tracks_were_removed else "No duplicates in "
+	title += 'playlist' if isPlaylist else 'saved tracks'
 	message = f"See {log_file} for details" if tracks_were_removed else "No tracks removed"
 	notify(title, message, icon_green_tick if tracks_were_removed else icon_red_cross)
 
@@ -184,8 +185,8 @@ def playerControls(action, force_action=False):
 		notify("No device playing spotify", "Aborting..", icon_red_exclaimation)
 		exit(1)
 
-	if action == 'next': sp.next_track()
-	elif action == 'previous': sp.previous_track()
+	if action in ['next', '-n']: sp.next_track()
+	elif action in ['previous', '-p']: sp.previous_track()
 	elif playback_state['is_playing']: sp.pause_playback()
 	else:
 		try: sp.start_playback()
@@ -197,37 +198,81 @@ def playerControls(action, force_action=False):
 			else: raise(e1)
 
 def printHelp():
-		print(f'''
+	print(f'''
 Usage: {args[0]} [actions] [options]
 Supported actions:
-	play-pause:                     toggle playback
-	next:                           go to next song
-	previous:                       go to previous song
-	add-to-playlist:                add current song to playlist
-	remove-from-playlist:           remove current song from playlist
-	remove-playlist-duplicates:     remove duplicate songs from playlist
-	remove-saved-duplicates:        remove duplicate songs from saved tracks
-	help:                           this help message
-Supported options:
-	-f:                             force addition to (or removal from) playlist
-	                                (May create duplicates)
+	-t,   play-pause:                    toggle playback
+	-n,   next:                          go to next song
+	-p,   previous:                      go to previous song
+	-a,   add-to-playlist:               add current song to playlist
+	-r,   remove-from-playlist:          remove current song from playlist
+	-rpd, remove-playlist-duplicates:    remove duplicate songs from playlist
+	-rsd, remove-saved-duplicates:       remove duplicate songs from saved tracks
+	-h,   help:                          this help message
+Extra options:
+	-f:                                  force addition to (or removal from) playlist
+	                                     (May create duplicates)
 ''')
+	exit(1)
 
 if __name__ == '__main__':
 	args = sys.argv
-	if len(args) < 2:
+	if len(args) not in [2, 3]:
 		printHelp()
-		exit(1)
 
-	force_action = '-f' in args[1:]
-	args.pop(args.index('-f')) if force_action else None
+	force_action = '-f' in args
+	if len(args) == 3:
+		test = args.pop(args.index('-f')) if force_action else None
+		if test is None: printHelp()
 
 	option = args[1]
-	if option in ['add-to-playlist', 'remove-from-playlist']:
+	if option in ['add-to-playlist', '-a', 'remove-from-playlist', '-r']:
 		playlistControls(option, force_action)
-	elif option in ['play-pause', 'next', 'previous']:
+	elif option in ['play-pause', '-t', 'next', '-n', 'previous', '-p']:
 		playerControls(option, force_action)
-	elif option in ['remove-playlist-duplicates', 'remove-saved-duplicates']:
-		removeDuplicates(option == 'remove-playlist-duplicates')
+	elif option in ['remove-playlist-duplicates', '-rpd', 'remove-saved-duplicates', '-rsd']:
+		removeDuplicates(option)
 	else:
 		printHelp()
+
+
+# Add this to ~/.bash_completions for tab auto-complete in terminal:
+'''
+_spotifyControlsAPI.py()
+{
+	local cur prev words cword opts1 opts2
+	_init_completion || return
+
+	opts1a=(play-pause next previous add-to-playlist remove-from-playlist)
+	opts1b=(-t -n -p -a -r)
+	opts2a=(remove-playlist-duplicates remove-saved-duplicates help)
+	opts2b=(-rpd -rsd -h)
+
+	if [[ $cword -eq 1 ]]; then
+		if [[ $cur == -* ]]; then
+			COMPREPLY=( $(compgen -W "${opts1b[*]} ${opts2b[*]} -f" -- "$cur") )
+		else
+			COMPREPLY=( $(compgen -W "${opts1a[*]} ${opts2a[*]}" -- "$cur") )
+		fi
+		[[ $COMPREPLY ]] && return
+	elif [[ $cword -eq 2 ]]; then
+		if [[ $prev == '-f' ]]; then
+			if [[ $cur == -* ]]; then
+				COMPREPLY=( $(compgen -W "${opts1b[*]}" -- "$cur") )
+			else
+				COMPREPLY=( $(compgen -W "${opts1a[*]}" -- "$cur") )
+			fi
+			[[ $COMPREPLY ]] && return
+		fi
+		check=false
+		for opt in "${opts1a[@]}" "${opts1b[@]}"; do
+			[[ "$opt" == "$prev" ]] && check=true
+		done
+		if $check; then
+			COMPREPLY=( $(compgen -W "-f" -- "$cur") )
+			[[ $COMPREPLY ]] && return
+		fi
+	fi
+} &&
+complete -o nosort -F _spotifyControlsAPI.py spotifyControlsAPI.py
+'''

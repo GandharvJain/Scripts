@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 import requests
 from unidecode import unidecode
 from bs4 import BeautifulSoup

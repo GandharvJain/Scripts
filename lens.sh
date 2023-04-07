@@ -1,6 +1,6 @@
 #!/bin/bash
 # Dependencies: tesseract-ocr imagemagick scrot xsel
-
+set -e
 tesseract_lang=eng
 # quick language menu, add more if you need other languages.
 
