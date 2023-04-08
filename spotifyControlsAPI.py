@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
-import spotipy
+from spotipy.util import prompt_for_user_token
+from spotipy import Spotify
 import concurrent.futures
 from os import popen
 import sys
@@ -43,10 +44,10 @@ def getSpotipyInstance():
 	scope += 'user-library-read user-library-modify'
 
 	# Spotify API user credentials
-	token = spotipy.util.prompt_for_user_token(username, scope, client_id, client_secret, redirect_uri)
+	token = prompt_for_user_token(username, scope, client_id, client_secret, redirect_uri)
 	if token:
 		# Create a Spotipy instance
-		sp = spotipy.Spotify(auth=token)
+		sp = Spotify(auth=token)
 		return sp
 	else:
 		notify(f"Can't get token for {username}")
@@ -217,7 +218,7 @@ Extra options:
 
 if __name__ == '__main__':
 	args = sys.argv
-	if len(args) not in [2, 3]:
+	if not 1 < len(args) < 4:
 		printHelp()
 
 	force_action = '-f' in args
