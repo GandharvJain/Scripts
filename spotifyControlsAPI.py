@@ -24,6 +24,11 @@ icon_green_tick = "/usr/share/icons/Yaru/256x256/actions/dialog-yes.png"
 icon_red_cross = "/usr/share/icons/Yaru/256x256/actions/dialog-no.png"
 icon_red_exclaimation = "/usr/share/icons/Yaru/256x256/emblems/emblem-important.png"
 
+dbus_ping_cmd = 'dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.freedesktop.DBus.Peer.Ping'
+dbus_toggle_cmd = 'dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause'
+dbus_prev_cmd = 'dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Previous'
+dbus_next_cmd = 'dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Next'
+
 def notify(title="No title", message="", icon_path=""):
 	print(title, ": ", message)
 	popen(f'notify-send "{title}" "{message}" -i "{icon_path}"')
@@ -265,13 +270,20 @@ def removeDuplicates(option):
 def playerControls(action, force_action=False):
 	sp = getSpotipyInstance()
 	playback_state = sp.current_playback()
-	if playback_state is None:
+	# Check if spotify is connected by dbus
+	dbus_is_connected = bool(popen(dbus_ping_cmd).read())
+
+	if playback_state is None and not dbus_is_connected:
 		notify("No device playing spotify", "Aborting..", icon_red_exclaimation)
 		exit(1)
 
-	if action in ['next', '-n']: sp.next_track()
-	elif action in ['previous', '-p']: sp.previous_track()
-	elif playback_state['is_playing']: sp.pause_playback()
+	if action in ['next', '-n']:
+		sp.next_track() if not dbus_is_connected else popen(dbus_next_cmd)
+	elif action in ['previous', '-p']:
+		sp.previous_track() if not dbus_is_connected else popen(dbus_prev_cmd)
+	# If action is play/pause:
+	elif dbus_is_connected: popen(dbus_toggle_cmd)
+	elif playback_state.get('is_playing', True): sp.pause_playback()
 	else:
 		try: sp.start_playback()
 		except Exception as e1:
