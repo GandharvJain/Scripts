@@ -8,30 +8,33 @@ import sys
 import time
 import json
 
+# Numeric Constants
 MAX_PLAYLIST_ITEMS = 100
 MAX_SAVED_TRACKS = 20
 MAX_THREADS = 64
 LAST_FETCHED_SLACK_MS = 1000
 REDUCE_API_CALLS = True
 
-username = ''
-playlist_id = ''
+username = ""
+playlist_id = ""
 
-tracks_file = '/home/gandharv/Scripts/secrets/tracks.json'
-log_file = '/home/gandharv/Scripts/secrets/spotipy_script.log'
-creds_file = '/home/gandharv/Scripts/secrets/spotify_creds.txt'
+# File paths
+tracks_file = "/home/gandharv/Scripts/secrets/tracks.json"
+log_file = "/home/gandharv/Scripts/secrets/spotipy_script.log"
+creds_file = "/home/gandharv/Scripts/secrets/spotify_creds.txt"
 icon_green_tick = "/usr/share/icons/Yaru/256x256/actions/dialog-yes.png"
 icon_red_cross = "/usr/share/icons/Yaru/256x256/actions/dialog-no.png"
 icon_red_exclaimation = "/usr/share/icons/Yaru/256x256/emblems/emblem-important.png"
 
-dbus_ping_cmd = 'dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.freedesktop.DBus.Peer.Ping'
-dbus_toggle_cmd = 'dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause'
-dbus_prev_cmd = 'dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Previous'
-dbus_next_cmd = 'dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Next'
+# DBus commands
+dbus_ping_cmd = "dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.freedesktop.DBus.Peer.Ping"
+dbus_toggle_cmd = "dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause"
+dbus_prev_cmd = "dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Previous"
+dbus_next_cmd = "dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Next"
 
 def notify(title="No title", message="", icon_path=""):
 	print(title, ": ", message)
-	popen(f'notify-send "{title}" "{message}" -i "{icon_path}"')
+	popen(f'''notify-send "{title}" "{message}" -i "{icon_path}"''')
 
 def getSpotipyInstance():
 	global username
@@ -47,9 +50,9 @@ def getSpotipyInstance():
 	except FileNotFoundError:
 		notify("Credentials file is missing!", "Aborting..", icon_red_exclaimation)
 		exit(1)
-	scope = 'playlist-modify-public playlist-modify-private user-read-currently-playing '
-	scope += 'user-modify-playback-state user-read-playback-state '
-	scope += 'user-library-read user-library-modify'
+	scope = "playlist-modify-public playlist-modify-private user-read-currently-playing "
+	scope += "user-modify-playback-state user-read-playback-state "
+	scope += "user-library-read user-library-modify"
 
 	# Spotify API user credentials
 	token = prompt_for_user_token(username, scope, client_id, client_secret, redirect_uri)
@@ -68,16 +71,16 @@ def loadJsonDict():
 			json_dict = json.load(f)
 	except:
 		pass
-	old_snapshot_id = json_dict.get('snapshot_id', '')
-	old_playlist_tracks = json_dict.get('playlist_tracks', [])
-	old_saved_tracks = json_dict.get('saved_tracks', [])
+	old_snapshot_id = json_dict.get("snapshot_id", "")
+	old_playlist_tracks = json_dict.get("playlist_tracks", [])
+	old_saved_tracks = json_dict.get("saved_tracks", [])
 	return (old_snapshot_id, old_playlist_tracks, old_saved_tracks)
 
 def saveJsonDict(new_snapshot_id, new_playlist_tracks, new_saved_tracks):
 	json_dict = {
-	'snapshot_id': new_snapshot_id,
-	'playlist_tracks': new_playlist_tracks,
-	'saved_tracks': new_saved_tracks
+	"snapshot_id": new_snapshot_id,
+	"playlist_tracks": new_playlist_tracks,
+	"saved_tracks": new_saved_tracks
 	}
 	with open(tracks_file, 'w') as f:
 		json.dump(json_dict, f, indent=4)
@@ -90,9 +93,9 @@ def getAllTrackURIs(sp, isPlaylist, playlist_id="", use_offline_tracks=False):
 		return (old_snapshot_id, playlist_tracks, saved_tracks)
 
 	if isPlaylist:
-		playlist_info = sp.playlist(playlist_id, fields='tracks.total,snapshot_id')
-		total_count = playlist_info['tracks']['total']
-		curr_snapshot_id = playlist_info['snapshot_id']
+		playlist_info = sp.playlist(playlist_id, fields="tracks.total,snapshot_id")
+		total_count = playlist_info["tracks"]["total"]
+		curr_snapshot_id = playlist_info["snapshot_id"]
 		# Ceiling function:
 		num_api_calls = -(-total_count // MAX_PLAYLIST_ITEMS)
 
@@ -100,8 +103,8 @@ def getAllTrackURIs(sp, isPlaylist, playlist_id="", use_offline_tracks=False):
 		if total_count == len(playlist_tracks) and curr_snapshot_id == old_snapshot_id:
 			if num_api_calls > MAX_THREADS or REDUCE_API_CALLS:
 				offset = total_count - MAX_PLAYLIST_ITEMS
-				items = sp.playlist_tracks(playlist_id, 'items.track(uri)', MAX_PLAYLIST_ITEMS, offset)['items']
-				tracks = [track['track']['uri'] for track in items]
+				items = sp.playlist_tracks(playlist_id, "items.track(uri)", MAX_PLAYLIST_ITEMS, offset)["items"]
+				tracks = [track["track"]["uri"] for track in items]
 				if tracks == playlist_tracks[-MAX_PLAYLIST_ITEMS:]:
 					return (curr_snapshot_id, playlist_tracks, saved_tracks)
 
@@ -110,10 +113,10 @@ def getAllTrackURIs(sp, isPlaylist, playlist_id="", use_offline_tracks=False):
 		step = MAX_PLAYLIST_ITEMS
 	else:
 		response = sp.current_user_saved_tracks(limit=MAX_SAVED_TRACKS)
-		total_count = response['total']
+		total_count = response["total"]
 		# There is no snapshot_id for saved tracks, it's here for return value
 		curr_snapshot_id = old_snapshot_id
-		tracks = [track['track']['uri'] for track in response['items']]
+		tracks = [track["track"]["uri"] for track in response["items"]]
 		# Return loaded tracks if the 20 most recently added tracks are same
 		if total_count == len(saved_tracks) and tracks == saved_tracks[:len(tracks)]:
 			return (curr_snapshot_id, playlist_tracks, saved_tracks)
@@ -124,10 +127,10 @@ def getAllTrackURIs(sp, isPlaylist, playlist_id="", use_offline_tracks=False):
 	# Function executed in parallel
 	def getTrackURIs(offset):
 		if isPlaylist:
-			temp_tracks = sp.playlist_tracks(playlist_id, 'items.track(uri)', MAX_PLAYLIST_ITEMS, offset)['items']
+			temp_tracks = sp.playlist_tracks(playlist_id, "items.track(uri)", MAX_PLAYLIST_ITEMS, offset)["items"]
 		else:
-			temp_tracks = sp.current_user_saved_tracks(MAX_SAVED_TRACKS, offset)['items']
-		return [track['track']['uri'] for track in temp_tracks]
+			temp_tracks = sp.current_user_saved_tracks(MAX_SAVED_TRACKS, offset)["items"]
+		return [track["track"]["uri"] for track in temp_tracks]
 
 	# Checking if playlist already contains track
 	with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
@@ -145,14 +148,14 @@ def playlistControls(option, force_action=False):
 		notify("No device playing spotify!", "Aborting..", icon_red_exclaimation)
 		exit(1)
 
-	current_track_uri = current_track['item']['uri']
-	current_track_name = current_track['item']['name']
-	current_track_artists = ", ".join([artist['name'] for artist in current_track['item']['artists']])
+	current_track_uri = current_track["item"]["uri"]
+	current_track_name = current_track["item"]["name"]
+	current_track_artists = ", ".join([artist["name"] for artist in current_track["item"]["artists"]])
 
 	# Checking if latest data
 	current_time_ms = time.time() // 0.001
-	fetched_time_ms = int(current_track['timestamp'])
-	song_progress_ms = int(current_track['progress_ms'])
+	fetched_time_ms = int(current_track["timestamp"])
+	song_progress_ms = int(current_track["progress_ms"])
 	time_since_last_fetched_ms = current_time_ms - fetched_time_ms
 	if not force_action and time_since_last_fetched_ms > song_progress_ms + LAST_FETCHED_SLACK_MS:
 		notify("Fetched old data!", "Aborting..", icon_red_exclaimation)
@@ -165,7 +168,7 @@ def playlistControls(option, force_action=False):
 		playlist_contains_track = current_track_uri in playlist_tracks
 
 	# If option is add-to-playlist
-	if option in ['add-to-playlist', '-a']:
+	if option in ["add-to-playlist", "-a"]:
 		# Adding track to saved tracks if not already added
 		added_to_saved_tracks = False
 		if not sp.current_user_saved_tracks_contains([current_track_uri])[0]:
@@ -177,7 +180,7 @@ def playlistControls(option, force_action=False):
 		# Add the current track to the playlist
 		if force_action or not playlist_contains_track:
 			response = sp.user_playlist_add_tracks(username, playlist_id, [current_track_uri])
-			curr_snapshot_id = response['snapshot_id']
+			curr_snapshot_id = response["snapshot_id"]
 			# Adding to offline list of playlist tracks
 			playlist_tracks.append(current_track_uri)
 
@@ -193,7 +196,7 @@ def playlistControls(option, force_action=False):
 			notify(title, message, icon_red_cross)
 
 	# If option is remove-from-playlist
-	elif option in ['remove-from-playlist', '-r']:
+	elif option in ["remove-from-playlist", "-r"]:
 		# Removing track from saved tracks if already added
 		removed_from_saved_tracks = False
 		if sp.current_user_saved_tracks_contains([current_track_uri])[0]:
@@ -205,7 +208,7 @@ def playlistControls(option, force_action=False):
 		# Remove the current track from the playlist
 		if force_action or playlist_contains_track:
 			response = sp.user_playlist_remove_all_occurrences_of_tracks(username, playlist_id, [current_track_uri])
-			curr_snapshot_id = response['snapshot_id']
+			curr_snapshot_id = response["snapshot_id"]
 			# Removing all occurrences from offline list of playlist tracks
 			playlist_tracks = [track for track in playlist_tracks if track != current_track_uri]
 
@@ -215,7 +218,7 @@ def playlistControls(option, force_action=False):
 			notify(title, message, icon_green_tick)
 		# Not adding the track to avoid duplicates
 		else:
-			title = f"Track is not in the playlist"
+			title = "Track is not in the playlist"
 			title += " and saved tracks" if not removed_from_saved_tracks else ""
 			message = f"'{current_track_name}' by '{current_track_artists}'"
 			notify(title, message, icon_red_cross)
@@ -223,7 +226,7 @@ def playlistControls(option, force_action=False):
 	saveJsonDict(curr_snapshot_id, playlist_tracks, saved_tracks)
 
 def removeDuplicates(option):
-	isPlaylist = option in ['remove-playlist-duplicates', '-rpd']
+	isPlaylist = option in ["remove-playlist-duplicates", "-rpd"]
 	sp = getSpotipyInstance()
 
 	curr_snapshot_id, playlist_tracks, saved_tracks = getAllTrackURIs(sp, isPlaylist, playlist_id)
@@ -241,7 +244,7 @@ def removeDuplicates(option):
 		if isPlaylist:
 			tracks_to_remove = [{"uri": track, "positions": indices} for track, indices in duplicates.items()]
 			curr_snapshot_id = sp.user_playlist_remove_specific_occurrences_of_tracks(username, playlist_id, tracks_to_remove)
-			curr_snapshot_id = curr_snapshot_id['snapshot_id']
+			curr_snapshot_id = curr_snapshot_id["snapshot_id"]
 			# Removing from offline list of playlist tracks
 			playlist_tracks = [trk for i, trk in indexed_tracks if i not in indices_to_remove]
 		else:
@@ -261,7 +264,7 @@ def removeDuplicates(option):
 		print(*tracks_to_remove, sep='\n')
 
 	title = "Removed duplicates from " if tracks_were_removed else "No duplicates in "
-	title += 'playlist' if isPlaylist else 'saved tracks'
+	title += "playlist" if isPlaylist else "saved tracks"
 	message = f"See {log_file} for details" if tracks_were_removed else "No tracks removed"
 	notify(title, message, icon_green_tick if tracks_were_removed else icon_red_cross)
 
@@ -277,13 +280,13 @@ def playerControls(action, force_action=False):
 		notify("No device playing spotify", "Aborting..", icon_red_exclaimation)
 		exit(1)
 
-	if action in ['next', '-n']:
+	if action in ["next", "-n"]:
 		sp.next_track() if not dbus_is_connected else popen(dbus_next_cmd)
-	elif action in ['previous', '-p']:
+	elif action in ["previous", "-p"]:
 		sp.previous_track() if not dbus_is_connected else popen(dbus_prev_cmd)
 	# If action is play/pause:
 	elif dbus_is_connected: popen(dbus_toggle_cmd)
-	elif playback_state.get('is_playing', True): sp.pause_playback()
+	elif playback_state.get("is_playing", True): sp.pause_playback()
 	else:
 		try: sp.start_playback()
 		except Exception as e1:
@@ -311,22 +314,22 @@ Extra options:
 ''')
 	exit(1)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 	args = sys.argv
 	if not 1 < len(args) < 4:
 		printHelp()
 
-	force_action = '-f' in args
+	force_action = "-f" in args
 	if len(args) == 3:
-		test = args.pop(args.index('-f')) if force_action else None
+		test = args.pop(args.index("-f")) if force_action else None
 		if test is None: printHelp()
 
 	option = args[1]
-	if option in ['add-to-playlist', '-a', 'remove-from-playlist', '-r']:
+	if option in ["add-to-playlist", "-a", "remove-from-playlist", "-r"]:
 		playlistControls(option, force_action)
-	elif option in ['play-pause', '-t', 'next', '-n', 'previous', '-p']:
+	elif option in ["play-pause", "-t", "next", "-n", "previous", "-p"]:
 		playerControls(option, force_action)
-	elif option in ['remove-playlist-duplicates', '-rpd', 'remove-saved-duplicates', '-rsd']:
+	elif option in ["remove-playlist-duplicates", "-rpd", "remove-saved-duplicates", "-rsd"]:
 		removeDuplicates(option)
 	else:
 		printHelp()
