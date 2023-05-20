@@ -7,6 +7,7 @@ from os import popen
 import sys
 import time
 import json
+from pprint import pprint
 
 # Numeric Constants
 MAX_PLAYLIST_ITEMS = 100
@@ -27,13 +28,14 @@ icon_red_cross = "/usr/share/icons/Yaru/256x256/actions/dialog-no.png"
 icon_red_exclaimation = "/usr/share/icons/Yaru/256x256/emblems/emblem-important.png"
 
 # DBus commands
-dbus_ping_cmd = "dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.freedesktop.DBus.Peer.Ping"
+dbus_ping_cmd = "dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.freedesktop.DBus.Peer.Ping 2>/dev/null"
 dbus_toggle_cmd = "dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause"
 dbus_prev_cmd = "dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Previous"
 dbus_next_cmd = "dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Next"
 
 def notify(title="No title", message="", icon_path=""):
-	print(title, ": ", message)
+	print(title)
+	print(message) if message else None
 	popen(f'''notify-send "{title}" "{message}" -i "{icon_path}"''')
 
 def getSpotipyInstance():
@@ -225,8 +227,13 @@ def playlistControls(option, force_action=False):
 
 	saveJsonDict(curr_snapshot_id, playlist_tracks, saved_tracks)
 
-def removeDuplicates(option):
-	isPlaylist = option in ["remove-playlist-duplicates", "-rpd"]
+def removeDuplicates(options):
+	option = options[0] if options else "playlist"
+	if option not in ["playlist", "saved"]:
+		notify("Invalid options", "Aborting..", icon_red_exclaimation)
+		exit(1)
+
+	isPlaylist = bool(option == "playlist")
 	sp = getSpotipyInstance()
 
 	curr_snapshot_id, playlist_tracks, saved_tracks = getAllTrackURIs(sp, isPlaylist, playlist_id)
@@ -270,7 +277,50 @@ def removeDuplicates(option):
 
 	saveJsonDict(curr_snapshot_id, playlist_tracks, saved_tracks)
 
-def playerControls(action, force_action=False):
+def extraPlaybackControls(action, options=list()):
+	sp = getSpotipyInstance()
+	playback_state = sp.current_playback()
+
+	if playback_state is None:
+		notify("No device playing spotify", "Aborting..", icon_red_exclaimation)
+		exit(1)
+
+	shuffle_status = playback_state.get("shuffle_state")
+	repeat_status = playback_state.get("repeat_state", "off")
+	option1 = options[0] if options else None
+
+	if action in ["shuffle", "-s"]:
+		if option1 is None:
+			option1 = "off" if shuffle_status else "on"
+
+		if option1 == "on":
+			sp.shuffle(True)
+			notify("Turned shuffle on")
+		elif option1  == "off":
+			sp.shuffle(False)
+			notify("Turned shuffle off")
+		else:
+			notify("Invalid options", "Aborting..", icon_red_exclaimation)
+
+	elif action in ["loop", "repeat", "-l"]:
+		if option1 is None:
+			valid_options = ["track", "context", "off"]
+			next_index = (valid_options.index(repeat_status) + 1) % len(valid_options)
+			option1 = valid_options[next_index]
+
+		if option1 in ["one", "track"]:
+			sp.repeat("track")
+			notify("Turned repeat on for track")
+		elif option1 in ["all", "context"]:
+			sp.repeat("context")
+			notify("Turned repeat on for playlist")
+		elif option1 == "off":
+			sp.repeat("off")
+			notify("Turned repeat off")
+		else:
+			notify("Invalid options", "Aborting..", icon_red_exclaimation)
+
+def transportControls(action):
 	sp = getSpotipyInstance()
 	playback_state = sp.current_playback()
 	# Check if spotify is connected by dbus
@@ -285,52 +335,74 @@ def playerControls(action, force_action=False):
 	elif action in ["previous", "-p"]:
 		sp.previous_track() if not dbus_is_connected else popen(dbus_prev_cmd)
 	# If action is play/pause:
-	elif dbus_is_connected: popen(dbus_toggle_cmd)
-	elif playback_state.get("is_playing", True): sp.pause_playback()
 	else:
-		try: sp.start_playback()
-		except Exception as e1:
-			# In private session 'is_playing' is always False but controls still work
-			if force_action:
-				try: sp.pause_playback()
-				except Exception as e2: raise(e2)
-			else: raise(e1)
+		if dbus_is_connected:
+			popen(dbus_toggle_cmd)
+		elif playback_state["is_playing"]:
+			sp.pause_playback()
+		elif playback_state["device"]["is_private_session"]:
+			try: sp.pause_playback()
+			except: sp.start_playback()
+		else:
+			sp.start_playback()
+
+def getCurrentPlayback(options=list()):
+	sp = getSpotipyInstance()
+	option1 = options[0] if options else None
+	playback_state = sp.current_playback(market=option1)
+	# Check if spotify is connected by dbus
+
+	if playback_state is None:
+		notify("No device playing spotify", "Aborting..", icon_red_exclaimation)
+		exit(1)
+
+	pprint(playback_state)
 
 def printHelp():
 	print(f'''
 Usage: {args[0]} [actions] [options]
 Supported actions:
-	-t,   play-pause:                    toggle playback
-	-n,   next:                          go to next song
-	-p,   previous:                      go to previous song
-	-a,   add-to-playlist:               add current song to playlist
-	-r,   remove-from-playlist:          remove current song from playlist
-	-rpd, remove-playlist-duplicates:    remove duplicate songs from playlist
-	-rsd, remove-saved-duplicates:       remove duplicate songs from saved tracks
-	-h,   help:                          this help message
+---------------------------------------------------------------------------------------
+short long                                  description
+---------------------------------------------------------------------------------------
+-i    info                                  get information about current playback
+-t    play-pause                            toggle playback
+-n    next                                  go to next song
+-p    previous                              go to previous song
+-a    add-to-playlist                       add current song to playlist
+-r    remove-from-playlist                  remove current song from playlist
+-s    shuffle [on/off]                      turn shuffle on or off (Default: toggle)
+-l    loop [one/all/off]                    repeat current song or playlist or turn
+                                            it off (Default: cycle through options)
+-d    remove-duplicates [playlist/saved]    remove duplicate songs (Default: playlist)
+-h    help                                  this help message
 Extra options:
-	-f:                                  force addition to (or removal from) playlist
-	                                     (May create duplicates)
+-f:                                         force addition to (or removal from) playlist
+                                            (May create duplicates)
 ''')
 	exit(1)
 
 if __name__ == "__main__":
-	args = sys.argv
+	args = [arg.lower() for arg in sys.argv]
 	if not 1 < len(args) < 4:
 		printHelp()
 
-	force_action = "-f" in args
-	if len(args) == 3:
-		test = args.pop(args.index("-f")) if force_action else None
-		if test is None: printHelp()
+	if "-f" in args:
+		force_action = True
+		args.pop(args.index("-f"))
+	else: force_action = False
 
-	option = args[1]
-	if option in ["add-to-playlist", "-a", "remove-from-playlist", "-r"]:
+	option, *extra_options = args[1:]
+	if option in ["info", "-i"]:
+		getCurrentPlayback(extra_options)
+	elif option in ["add-to-playlist", "-a", "remove-from-playlist", "-r"]:
 		playlistControls(option, force_action)
 	elif option in ["play-pause", "-t", "next", "-n", "previous", "-p"]:
-		playerControls(option, force_action)
-	elif option in ["remove-playlist-duplicates", "-rpd", "remove-saved-duplicates", "-rsd"]:
-		removeDuplicates(option)
+		transportControls(option)
+	elif option in ["shuffle", "-s", "loop", "repeat", "-l"]:
+		extraPlaybackControls(option, extra_options)
+	elif option in ["remove-duplicates", "-d"]:
+		removeDuplicates(extra_options)
 	else:
 		printHelp()
 
