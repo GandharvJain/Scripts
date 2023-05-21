@@ -349,7 +349,13 @@ def transportControls(action):
 def getCurrentPlayback(options=list()):
 	sp = getSpotipyInstance()
 	option1 = options[0] if options else None
-	playback_state = sp.current_playback(market=option1)
+
+	try:
+		playback_state = sp.current_playback(market=option1)
+	except Exception as e:
+		notify("Error", e.msg, icon_red_exclaimation)
+		raise(e)
+
 	# Check if spotify is connected by dbus
 
 	if playback_state is None:
@@ -358,34 +364,34 @@ def getCurrentPlayback(options=list()):
 
 	pprint(playback_state)
 
-def printHelp():
+def printHelp(name):
 	print(f'''
-Usage: {args[0]} [actions] [options]
+Usage: {name} [ACTION] [OPTIONS]
+
 Supported actions:
----------------------------------------------------------------------------------------
-short long                                  description
----------------------------------------------------------------------------------------
--i    info                                  get information about current playback
--t    play-pause                            toggle playback
--n    next                                  go to next song
--p    previous                              go to previous song
--a    add-to-playlist                       add current song to playlist
--r    remove-from-playlist                  remove current song from playlist
--s    shuffle [on/off]                      turn shuffle on or off (Default: toggle)
--l    loop [one/all/off]                    repeat current song or playlist or turn
-                                            it off (Default: cycle through options)
--d    remove-duplicates [playlist/saved]    remove duplicate songs (Default: playlist)
--h    help                                  this help message
-Extra options:
--f:                                         force addition to (or removal from) playlist
-                                            (May create duplicates)
+-------------------------------------------------------------------------------------------
+Short Long                    Options            Description
+-------------------------------------------------------------------------------------------
+-t    play-pause                                 Toggle playback
+-n    next                                       Go to next song
+-p    previous                                   Go to previous song
+-a    add-to-playlist                            Add current song to playlist
+-r    remove-from-playlist                       Remove current song from playlist
+-s    shuffle                 on, off            Turn shuffle on or off (Default: toggle)
+-l    loop                    one, all, off      Repeat current song or playlist or turn
+                                                 it off (Default: cycle through options)
+-d    remove-duplicates       playlist, saved    Remove duplicate songs (Default: playlist)
+-i    info                    [Market]           Get information about current playback
+-h    help                                       Show this help message
+-f                                               Force addition to (or removal from)
+                                                 playlist (May create duplicates)
 ''')
 	exit(1)
 
 if __name__ == "__main__":
-	args = [arg.lower() for arg in sys.argv]
+	args = sys.argv
 	if not 1 < len(args) < 4:
-		printHelp()
+		printHelp(args[0])
 
 	if "-f" in args:
 		force_action = True
@@ -393,6 +399,8 @@ if __name__ == "__main__":
 	else: force_action = False
 
 	option, *extra_options = args[1:]
+	extra_options = [opt.lower() for opt in extra_options]
+
 	if option in ["info", "-i"]:
 		getCurrentPlayback(extra_options)
 	elif option in ["add-to-playlist", "-a", "remove-from-playlist", "-r"]:
@@ -404,45 +412,71 @@ if __name__ == "__main__":
 	elif option in ["remove-duplicates", "-d"]:
 		removeDuplicates(extra_options)
 	else:
-		printHelp()
+		printHelp(args[0])
 
 
 # Add this to ~/.bash_completions for tab auto-complete in terminal:
 '''
 _spotifyControlsAPI.py()
 {
-	local cur prev words cword opts1 opts2
+	local cur prev words cword
 	_init_completion || return
 
-	opts1a=(play-pause next previous add-to-playlist remove-from-playlist)
-	opts1b=(-t -n -p -a -r)
-	opts2a=(remove-playlist-duplicates remove-saved-duplicates help)
-	opts2b=(-rpd -rsd -h)
+	declare -A opts_l=(
+		[play-pause]=1 [next]=1 [previous]=1
+		[add-to-playlist]=1 [remove-from-playlist]=1
+		[shuffle]=1 [loop]=1 [remove-duplicates]=1 [info]=1 [help]=1
+	)
+	declare -A opts_s=(
+		[-t]=1 [-n]=1 [-p]=1 [-a]=1 [-r]=1 [-s]=1 [-l]=1 [-d]=1 [-i]=1 [-h]=1
+	)
+	declare -A opts_l_force=(
+		[add-to-playlist]=1 [remove-from-playlist]=1
+	)
+	declare -A opts_s_force=(
+		[-a]=1 [-r]=1
+	)
+	declare -A opts_l_extra=(
+		[shuffle]=1 [loop]=1 [repeat]=1 [remove-duplicates]=1 [info]=1
+	)
+	declare -A opts_s_extra=(
+		[-s]=1 [-l]=1 [-d]=1 [-i]=1
+	)
+	market=(
+		AD AE AF AG AI AL AM AO AQ AR AS AT AU AW AX AZ BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BR BS BT BV BW BY BZ CA CC CD CF CG CH CI CK CL CM CN CO CR CU CV CW CX CY CZ DE DJ DK DM DO DZ EC EE EG EH ER ES ET FI FJ FK FM FO FR GA GB GD GE GF GG GH GI GL GM GN GP GQ GR GS GT GU GW GY HK HM HN HR HT HU ID IE IL IM IN IO IQ IR IS IT JE JM JO JP KE KG KH KI KM KN KP KR KW KY KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MF MG MH MK ML MM MN MO MP MQ MR MS MT MU MV MW MX MY MZ NA NC NE NF NG NI NL NO NP NR NU NZ OM PA PE PF PG PH PK PL PM PN PR PS PT PW PY QA RE RO RS RU RW SA SB SC SD SE SG SH SI SJ SK SL SM SN SO SR SS ST SV SX SY SZ TC TD TF TG TH TJ TK TL TM TN TO TR TT TV TW TZ UA UG UM US UY UZ VA VC VE VG VI VN VU WF WS XK YE YT ZA ZM ZW 
+	)
 
 	if [[ $cword -eq 1 ]]; then
 		if [[ $cur == -* ]]; then
-			COMPREPLY=( $(compgen -W "${opts1b[*]} ${opts2b[*]} -f" -- "$cur") )
+			COMPREPLY=( $(compgen -W "${!opts_s[*]} -f" -- "$cur") )
 		else
-			COMPREPLY=( $(compgen -W "${opts1a[*]} ${opts2a[*]}" -- "$cur") )
+			COMPREPLY=( $(compgen -W "${!opts_l[*]}" -- "$cur") )
 		fi
 		[[ $COMPREPLY ]] && return
-	elif [[ $cword -eq 2 ]]; then
+	elif [[ $cword -ge 2 ]]; then
 		if [[ $prev == '-f' ]]; then
 			if [[ $cur == -* ]]; then
-				COMPREPLY=( $(compgen -W "${opts1b[*]}" -- "$cur") )
+				COMPREPLY=( $(compgen -W "${!opts_s_force[*]}" -- "$cur") )
 			else
-				COMPREPLY=( $(compgen -W "${opts1a[*]}" -- "$cur") )
+				COMPREPLY=( $(compgen -W "${!opts_l_force[*]}" -- "$cur") )
 			fi
 			[[ $COMPREPLY ]] && return
 		fi
-		check=false
-		for opt in "${opts1a[@]}" "${opts1b[@]}"; do
-			[[ "$opt" == "$prev" ]] && check=true
-		done
-		if $check; then
+		if [[ ( "${words[*]} " != *' -f '* ) && ( -n ${opts_l_force[$prev]} || -n ${opts_s_force[$prev]} ) ]]; then
 			COMPREPLY=( $(compgen -W "-f" -- "$cur") )
-			[[ $COMPREPLY ]] && return
 		fi
+		if [[ -n ${opts_l_extra[$prev]} || -n ${opts_s_extra[$prev]} ]]; then
+			if [[ $prev == '-s' || $prev == 'shuffle' ]]; then
+				COMPREPLY+=( $(compgen -W "on off" -- "$cur") )
+			elif [[ $prev == '-l' || $prev == 'loop' || $prev == 'repeat' ]]; then
+				COMPREPLY+=( $(compgen -W "one all off" -- "$cur") )
+			elif [[ $prev == '-d' || $prev == 'remove-duplicates' ]]; then
+				COMPREPLY+=( $(compgen -W "playlist saved" -- "$cur") )
+			elif [[ $prev == '-i' || $prev == 'info' ]]; then
+				COMPREPLY+=( $(compgen -W "${market[*]}" -- "$cur") )
+			fi
+		fi
+		[[ $COMPREPLY ]] && return
 	fi
 } &&
 complete -o nosort -F _spotifyControlsAPI.py spotifyControlsAPI.py
