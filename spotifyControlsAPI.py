@@ -356,8 +356,6 @@ def getCurrentPlayback(options=list()):
 		notify("Error", e.msg, icon_red_exclaimation)
 		raise(e)
 
-	# Check if spotify is connected by dbus
-
 	if playback_state is None:
 		notify("No device playing spotify", "Aborting..", icon_red_exclaimation)
 		exit(1)
@@ -390,13 +388,13 @@ Short Long                    Options            Description
 
 if __name__ == "__main__":
 	args = sys.argv
-	if not 1 < len(args) < 4:
-		printHelp(args[0])
-
 	if "-f" in args:
 		force_action = True
 		args.pop(args.index("-f"))
 	else: force_action = False
+
+	if not 1 < len(args) < 4:
+		printHelp(args[0])
 
 	option, *extra_options = args[1:]
 	extra_options = [opt.lower() for opt in extra_options]
