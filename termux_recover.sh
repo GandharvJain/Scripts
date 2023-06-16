@@ -23,7 +23,7 @@ deployFdroidApp() {
 	app_version=$(wget -qO - https://f-droid.org/api/v1/packages/$package_name | jq -r '.suggestedVersionCode')
 	app_apk=$package_name"_"$app_version.apk
 	# Getting official app name
-	app_name=$(wget -qO - https://gitlab.com/fdroid/fdroiddata/-/raw/master/metadata/$package_name.yml | awk '/AutoName/ {print $1}')
+	app_name=$(wget -qO - https://gitlab.com/fdroid/fdroiddata/-/raw/master/metadata/$package_name.yml | awk '/AutoName/ {print $2}')
 
 	# Downloading apk
 	wget "https://f-droid.org/repo/$app_apk"
@@ -79,7 +79,7 @@ fi
 echo "Decrypting and extracting Termux backup..."
 
 # Decrypting and extracting termux backup
-if [[ termux_api_available = true ]]; then
+if [[ $termux_api_available = true ]]; then
 	PASS=$(termux-dialog text -t 'Termux Backup Password' -p | jq -r '.text')
 	gpg --batch --pinentry-mode loopback --passphrase $PASS -d /sdcard/termux-backup.tar.gz.gpg | tar zx -C /data/data/com.termux/files --recursive-unlink --preserve-permissions
 else
