@@ -70,8 +70,6 @@ while [[ -z $choice ]]; do
 done
 
 if [[ $choice = yes ]]; then
-	# Update Termux
-	deployFdroidApp com.termux no
 	# Install Termux:Widget
 	deployFdroidApp com.termux.widget no
 	# Install Termux:Styling
