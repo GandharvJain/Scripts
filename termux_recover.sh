@@ -1,9 +1,20 @@
 #!/bin/bash
 
+# Ask for "Draw over apps" permission
+echo "Enable \"Display over other apps\" in the settings"
+am start -a android.settings.APPLICATION_DETAILS_SETTINGS -d "package:com.termux"
+# Alternate version in case the setting is not located in the app info page
+# am start --user 0 -a android.settings.action.MANAGE_OVERLAY_PERMISSION -d "package:com.termux"
+
 yes | pkg update && yes | pkg upgrade
 pkg install tar jq wget gnupg termux-api -y
 yes Y | termux-setup-storage
 sleep 5
+
+# Ask for install app permission
+echo "Allow Termux permission to install apps"
+am start -a android.settings.MANAGE_UNKNOWN_APP_SOURCES
+sleep 10
 
 deployFdroidApp() {
 	package_name=$1
