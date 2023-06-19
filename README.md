@@ -12,3 +12,4 @@ Also, shows a popup to rename or delete recording.
 * **lens.sh**: Do OCR on screen clipping. [Copied from here](https://gist.github.com/mnofresno/25d0cc6a45aa8644596705c78382304e).
 * **okular\_with\_logging.sh**: Open Okular pdf viewer and log list of open pdf files in /home
 * **termux\_recover.sh**: Restore Termux from .tar.gpg backup
+* **bestServer.sh**: Find best server
