@@ -1,5 +1,6 @@
 #!/bin/bash
 
+export HISTTIMEFORMAT="[%F %T] "
 BACKUP_FILE=/sdcard/termux-backup.tar.gz.gpg
 TERMUX_FILES=/data/data/com.termux/files
 mkdir $TERMUX_FILES/termux_recovery
@@ -11,8 +12,11 @@ am start -a android.settings.APPLICATION_DETAILS_SETTINGS -d "package:com.termux
 # Alternate version in case the setting is not located in the app info page
 # am start --user 0 -a android.settings.action.MANAGE_OVERLAY_PERMISSION -d "package:com.termux"
 
-yes | pkg update && yes | pkg upgrade
-pkg install tar jq gnupg termux-api -y
+while true; do
+	yes | pkg update
+	pkg install tar jq gnupg termux-api -y && installed=true || installed=false
+	$installed && break || termux-change-repo
+done
 yes Y | termux-setup-storage
 sleep 5
 
@@ -115,3 +119,5 @@ termux-notification -t "Install termux shortcuts" --action "am start -a android.
 echo "[termux_recover.sh] Finished Termux recovery"
 
 source $PREFIX/etc/profile
+
+history -a
