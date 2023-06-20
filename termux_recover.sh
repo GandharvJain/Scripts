@@ -67,7 +67,7 @@ deployFdroidApp() {
 }
 
 # Install Termux:API
-deployFdroidApp com.termux.api no
+deployFdroidApp com.termux.api yes
 
 echo "[termux_recover.sh] Waiting for Termux:API to install"
 
