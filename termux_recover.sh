@@ -146,3 +146,4 @@ source $HOME/.bashrc
 history -a
 
 echo "[termux_recover.sh] Finished Termux recovery"
+reset

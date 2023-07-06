@@ -14,7 +14,7 @@ def pullPage(dept_code, sec_id):
 	output = []
 	courses = soup.findAll("table")[1].findAll('tr')[1:]
 	for c in courses:
-		url = str(c).split('\'')[1]
+		url = c.find("button")['onclick'].split('\'')[1]
 
 		course_code = c.find("td").text
 		course_name = c.find("td", {"align": False}).text.rstrip("+* ")
@@ -28,7 +28,8 @@ def pullPage(dept_code, sec_id):
 		print(f"Downloaded {name}")
 	return output
 
-inputs = [("CSE", str(i)) for i in range(97, 106)]
+# inputs = [("CSE", str(i)) for i in range(97, 106)]
+inputs = [("ECE", str(i)) for i in range(114, 124)]
 
 outputs = Pool(8).starmap(pullPage, inputs)
 pdf = FPDF()
