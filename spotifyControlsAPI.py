@@ -95,7 +95,7 @@ def getAllTrackURIs(sp, isPlaylist, playlist_id="", use_offline_tracks=False):
 		return (old_snapshot_id, playlist_tracks, saved_tracks)
 
 	if isPlaylist:
-		playlist_info = sp.playlist(playlist_id, fields="tracks.total,snapshot_id")
+		playlist_info = sp.playlist(playlist_id, fields="snapshot_id,tracks.total")
 		total_count = playlist_info["tracks"]["total"]
 		curr_snapshot_id = playlist_info["snapshot_id"]
 		# Ceiling function:

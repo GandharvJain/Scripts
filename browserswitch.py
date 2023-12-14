@@ -50,7 +50,7 @@ def currentWorkspace():
 def sort(windows):
 
 	# requesting pids of favourite apps in desired order
-	favourites_pids = os.popen('pidof Discord nautilus chrome sublime_text spotify teams okular-bin').read().strip().split()
+	favourites_pids = os.popen('pidof Discord nautilus chrome sublime_text spotify okular-bin').read().strip().split()
 	
 	sortedWinIds = []
 	unsortedWinIds = list(list(zip(*windows))[0])
