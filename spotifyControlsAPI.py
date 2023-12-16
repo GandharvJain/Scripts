@@ -80,12 +80,12 @@ def loadJsonDict():
 
 def saveJsonDict(new_snapshot_id, new_playlist_tracks, new_saved_tracks):
 	json_dict = {
-	"snapshot_id": new_snapshot_id,
-	"playlist_tracks": new_playlist_tracks,
-	"saved_tracks": new_saved_tracks
+		"snapshot_id": new_snapshot_id,
+		"playlist_tracks": new_playlist_tracks,
+		"saved_tracks": new_saved_tracks
 	}
 	with open(tracks_file, 'w') as f:
-		json.dump(json_dict, f, indent=4)
+		json.dump(json_dict, f, indent='\t')
 
 def getAllTrackURIs(sp, isPlaylist, playlist_id="", use_offline_tracks=False):
 	# Loading tracks and snapshot id from json file
