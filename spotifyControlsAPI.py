@@ -23,6 +23,7 @@ playlist_id = ""
 tracks_file = "/home/gandharv/Scripts/secrets/tracks.json"
 log_file = "/home/gandharv/Scripts/secrets/spotipy_script.log"
 creds_file = "/home/gandharv/Scripts/secrets/spotify_creds.txt"
+cache_file = "/home/gandharv/Scripts/secrets/.cache-"
 icon_green_tick = "/usr/share/icons/Yaru/256x256/actions/dialog-yes.png"
 icon_red_cross = "/usr/share/icons/Yaru/256x256/actions/dialog-no.png"
 icon_red_exclaimation = "/usr/share/icons/Yaru/256x256/emblems/emblem-important.png"
@@ -41,6 +42,7 @@ def notify(title="No title", message="", icon_path=""):
 def getSpotipyInstance():
 	global username
 	global playlist_id
+	global cache_file
 	# Spotify API credentials
 	try:
 		with open(creds_file, 'r') as f:
@@ -55,9 +57,10 @@ def getSpotipyInstance():
 	scope = "playlist-modify-public playlist-modify-private user-read-currently-playing "
 	scope += "user-modify-playback-state user-read-playback-state "
 	scope += "user-library-read user-library-modify"
+	cache_file += username
 
 	# Spotify API user credentials
-	token = prompt_for_user_token(username, scope, client_id, client_secret, redirect_uri)
+	token = prompt_for_user_token(username, scope, client_id, client_secret, redirect_uri, cache_file)
 	if token:
 		# Create a Spotipy instance
 		sp = Spotify(auth=token)
