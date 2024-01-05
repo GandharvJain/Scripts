@@ -15,5 +15,6 @@ mogrify -modulate 100,0 -resize 400% $SCR_IMG.png
 
 tesseract $SCR_IMG.png $SCR_IMG &> /dev/null
 strings $SCR_IMG.txt
+strings $SCR_IMG.txt | xsel -bi
 
 exit
