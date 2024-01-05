@@ -1,3 +1,4 @@
+#!/bin/bash
 TEST_FILE_PATH="$1"; shift
 mirrors=($@)
 TIMEOUT=5
