@@ -324,24 +324,32 @@ def extraPlaybackControls(action, options=list()):
 			notify("Invalid options", "Aborting..", icon_red_exclaimation)
 
 def transportControls(action):
-	sp = getSpotipyInstance()
-	playback_state = sp.current_playback()
 	# Check if spotify is connected by dbus
 	dbus_is_connected = bool(popen(dbus_ping_cmd).read())
+	if dbus_is_connected:
+		if action in ["next", "-n"]:
+			popen(dbus_next_cmd)
+		elif action in ["previous", "-p"]:
+			popen(dbus_prev_cmd)
+		# If action is play/pause:
+		else:
+			popen(dbus_toggle_cmd)
+		exit(0)
 
-	if playback_state is None and not dbus_is_connected:
+	sp = getSpotipyInstance()
+
+	playback_state = sp.current_playback()
+	if playback_state is None:
 		notify("No device playing spotify", "Aborting..", icon_red_exclaimation)
 		exit(1)
 
 	if action in ["next", "-n"]:
-		sp.next_track() if not dbus_is_connected else popen(dbus_next_cmd)
+		sp.next_track()
 	elif action in ["previous", "-p"]:
-		sp.previous_track() if not dbus_is_connected else popen(dbus_prev_cmd)
+		sp.previous_track()
 	# If action is play/pause:
 	else:
-		if dbus_is_connected:
-			popen(dbus_toggle_cmd)
-		elif playback_state["is_playing"]:
+		if playback_state["is_playing"]:
 			sp.pause_playback()
 		elif playback_state["device"]["is_private_session"]:
 			try: sp.pause_playback()
