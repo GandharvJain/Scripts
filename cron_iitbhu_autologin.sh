@@ -1,7 +1,8 @@
 #!/bin/bash
 
-last_login_file='/home/gandharv/Scripts/secrets/lastLogin.txt'
-wifi_pass_file='/home/gandharv/Scripts/secrets/iitbhu_wifi_pass.txt'
+secrets_path = '/home/gandharv/Scripts/secrets/'
+last_login_file=$secrets_path'lastLogin.txt'
+wifi_pass_file=$secrets_path'iitbhu_wifi_pass.txt'
 
 # Add this script to a scheduling system to run every x hours or so
 echo "Attempting relogin at $(date +'%A %d %B %Y %T %Z')"

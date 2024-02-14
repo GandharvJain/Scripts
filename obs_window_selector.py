@@ -5,7 +5,8 @@ import os
 # This script changes window in window capture source to 
 # the currently focused window or the one chosen by select tool
 
-pass_file = "/home/gandharv/Scripts/secrets/obs_password.txt"
+secrets_path = '/home/gandharv/Scripts/secrets/'
+pass_file = secrets_path + "obs_password.txt"
 
 # Requirements: OBS, obs-cli from snap store, xdotool and pgrep
 

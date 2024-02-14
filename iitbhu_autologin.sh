@@ -1,6 +1,7 @@
 #!/bin/bash
 
-wifi_pass_file='/home/gandharv/Scripts/secrets/iitbhu_wifi_pass.txt'
+secrets_path = '/home/gandharv/Scripts/secrets/'
+wifi_pass_file=$secrets_path'iitbhu_wifi_pass.txt'
 
 # Checking if connected to IIT (BHU)
 curl  --silent --connect-timeout 5 -I http://192.168.249.1:1000/login?

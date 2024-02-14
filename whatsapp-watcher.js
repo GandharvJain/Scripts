@@ -10,11 +10,12 @@ const SCOPES = ['https://www.googleapis.com/auth/calendar.events'];
 // The file token.json stores the user's access and refresh tokens, and is
 // created automatically when the authorization flow completes for the first
 // time.
-const TOKEN_PATH = '/home/gandharv/Scripts/secrets/google-calendar-token.json';
-const CREDENTIALS_PATH = '/home/gandharv/Scripts/secrets/google-calendar-credentials.json';
-const WHATSAPP_CONFIG_PATH = '/home/gandharv/Scripts/secrets/whatsapp_config.json';
-const WHATSAPP_AUTH_PATH = '/home/gandharv/Scripts/secrets/.wwebjs_auth';
-const WHATSAPP_CACHE_PATH = '/home/gandharv/Scripts/secrets/.wwebjs_cache';
+const SECRETS_PATH = '/home/gandharv/Scripts/secrets/'
+const TOKEN_PATH = SECRETS_PATH + 'google-calendar-token.json';
+const CREDENTIALS_PATH = SECRETS_PATH + 'google-calendar-credentials.json';
+const WHATSAPP_CONFIG_PATH = SECRETS_PATH + 'whatsapp_config.json';
+const WHATSAPP_AUTH_PATH = SECRETS_PATH + '.wwebjs_auth';
+const WHATSAPP_CACHE_PATH = SECRETS_PATH + '.wwebjs_cache';
 
 const {groupId, calendarId, checkString} = require(WHATSAPP_CONFIG_PATH);
 

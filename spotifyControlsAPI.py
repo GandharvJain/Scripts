@@ -20,10 +20,11 @@ username = ""
 playlist_id = ""
 
 # File paths
-tracks_file = "/home/gandharv/Scripts/secrets/tracks.json"
-log_file = "/home/gandharv/Scripts/secrets/spotipy_script.log"
-creds_file = "/home/gandharv/Scripts/secrets/spotify_creds.txt"
-cache_file = "/home/gandharv/Scripts/secrets/.cache-"
+secrets_path = '/home/gandharv/Scripts/secrets/'
+tracks_file = secrets_path + "tracks.json"
+log_file = secrets_path + "spotipy_script.log"
+creds_file = secrets_path + "spotify_creds.txt"
+cache_file = secrets_path + ".cache-"
 icon_green_tick = "/usr/share/icons/Yaru/256x256/actions/dialog-yes.png"
 icon_red_cross = "/usr/share/icons/Yaru/256x256/actions/dialog-no.png"
 icon_red_exclaimation = "/usr/share/icons/Yaru/256x256/emblems/emblem-important.png"

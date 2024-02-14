@@ -12,8 +12,9 @@ username = '20124018'
 login_link = 'http://192.168.249.1:1000/login?'
 logout_link = 'http://192.168.249.1:1000/logout?'
 
-last_login_file = '/home/gandharv/Scripts/secrets/lastLogin.txt'
-wifi_pass_file = '/home/gandharv/Scripts/secrets/iitbhu_wifi_pass.txt'
+secrets_path = '/home/gandharv/Scripts/secrets/'
+last_login_file = secrets_path + 'lastLogin.txt'
+wifi_pass_file = secrets_path + 'iitbhu_wifi_pass.txt'
 with open(last_login_file) as f:
 	last_login = int(f.readline().strip('\n'))
 
