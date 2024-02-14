@@ -1,6 +1,6 @@
 #!/bin/bash
 
-secrets_path = '/home/gandharv/Scripts/secrets/'
+secrets_path='/home/gandharv/Scripts/secrets/'
 last_login_file=$secrets_path'lastLogin.txt'
 wifi_pass_file=$secrets_path'iitbhu_wifi_pass.txt'
 
@@ -11,7 +11,7 @@ LAST_LOGIN=$(cat $last_login_file)
 TIME_SINCE_LOGIN=$(expr $(date +%s) - $LAST_LOGIN)
 LOGIN_COOLDOWN=$(expr 4 '*' 60 '*' 60 - 5 '*' 60)
 if ((TIME_SINCE_LOGIN < LOGIN_COOLDOWN)); then
-	echo "Already logged in recently"
+	echo "Already logged in recently at" `date -d @$LAST_LOGIN +'%A %d %B %Y %T %Z'`
 	if test "$1" = "-f"; then
 		echo "Ignoring last login.."
 	else

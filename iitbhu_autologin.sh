@@ -1,6 +1,6 @@
 #!/bin/bash
 
-secrets_path = '/home/gandharv/Scripts/secrets/'
+secrets_path='/home/gandharv/Scripts/secrets/'
 wifi_pass_file=$secrets_path'iitbhu_wifi_pass.txt'
 
 # Checking if connected to IIT (BHU)
