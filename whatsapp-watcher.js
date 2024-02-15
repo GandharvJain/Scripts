@@ -160,7 +160,7 @@ client.on('message_create', async (message) => {
 	const selfUserId = client.info.wid._serialized;
 	if (message.from != selfUserId)
 		return;
-	console.log("SELF", message.author??message.from, message.body);
+	console.log("SELF", message.author??message.from, JSON.stringify(message.body));
 
 	if (message.to == whatsappConfig.groupId && message.body.startsWith(whatsappConfig.checkString)) {
 		authorize()
@@ -174,7 +174,7 @@ client.on('message_create', async (message) => {
 });
 
 client.on('message', async (message) => {
-	console.log(message.author??message.from, message.body);
+	console.log(message.author??message.from, JSON.stringify(message.body));
 
 	if (message.from == whatsappConfig.groupId && message.body.startsWith(whatsappConfig.checkString)) {
 		authorize()
