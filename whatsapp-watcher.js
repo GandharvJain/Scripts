@@ -17,7 +17,7 @@ const WHATSAPP_CONFIG_PATH = SECRETS_PATH + 'whatsapp_config.json';
 const WHATSAPP_AUTH_PATH = SECRETS_PATH + '.wwebjs_auth';
 const WHATSAPP_CACHE_PATH = SECRETS_PATH + '.wwebjs_cache';
 
-const {groupId, calendarId, checkString} = require(WHATSAPP_CONFIG_PATH);
+const whatsappConfig = require(WHATSAPP_CONFIG_PATH);
 
 /*
 *	Reads previously authorized credentials from the save file.
@@ -137,7 +137,7 @@ async function insertCalendarEvent(message, auth) {
 	const calendar = google.calendar({version: 'v3', auth});
 	calendar.events.insert({
 		auth: auth,
-		calendarId: calendarId,
+		calendarId: whatsappConfig.calendarId,
 		resource: event
 	}).then(console.log).catch(console.error)
 }
@@ -150,15 +150,19 @@ async function quickAddCalendarEvent(message, auth) {
 	const calendar = google.calendar({version: 'v3', auth});
 	calendar.events.quickAdd({
 		auth: auth,
-		calendarId: calendarId,
+		calendarId: whatsappConfig.calendarId,
 		text: text
 	}).then(() => console.log("Successfully added event to calendar!")).catch(console.error)
 }
 
 
 client.on('message_create', async (message) => {
-	console.log(message.author + '\n' + message.body);
-	if (message.to == groupId && message.body.startsWith(checkString)) {
+	const selfUserId = client.info.wid._serialized;
+	if (message.from != selfUserId)
+		return;
+	console.log("SELF", message.author??message.from, message.body);
+
+	if (message.to == whatsappConfig.groupId && message.body.startsWith(whatsappConfig.checkString)) {
 		authorize()
 		.then((auth) => quickAddCalendarEvent(message, auth))
 		.catch(console.error);
@@ -169,9 +173,10 @@ client.on('message_create', async (message) => {
 	// console.log(messages);
 });
 
-client.on('message', (message) => {
-	console.log(message.author + '\n' + message.body);
-	if (message.from == groupId && message.body.startsWith(checkString)) {
+client.on('message', async (message) => {
+	console.log(message.author??message.from, message.body);
+
+	if (message.from == whatsappConfig.groupId && message.body.startsWith(whatsappConfig.checkString)) {
 		authorize()
 			.then((auth) => quickAddCalendarEvent(message, auth))
 			.catch(console.error);
