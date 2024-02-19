@@ -162,7 +162,7 @@ client.on('message_create', async (message) => {
 		return;
 	console.log("SELF", message.author??message.from, JSON.stringify(message.body));
 
-	if (message.to == whatsappConfig.groupId && message.body.startsWith(whatsappConfig.checkString)) {
+	if (message.to == selfUserId && message.body.startsWith(whatsappConfig.checkString)) {
 		authorize()
 		.then((auth) => quickAddCalendarEvent(message, auth))
 		.catch(console.error);
