@@ -1,4 +1,5 @@
 # Scripts for Ubuntu
+* **airpods_battery.py**: Check AirPods battery level for Linux. [Copied from here](https://github.com/delphiki/AirStatus).
 * **bestServer.sh**: Find best server.
 * **browserswitch.py**: Cycle forward or backward through all open windows in custom order. Modified from [this post](https://ubuntuforums.org/showthread.php?t=1204947&p=10455867#post10455867) on the Ubuntu forum. Can be used to cycle windows in the order on the dock. Can also cycle through apps open in current workspace (ignores multiple windows of same app).
 * **courses_crawler.py**: Download course details as pdf from `courses.iitbhu.ac.in`.
