@@ -8,6 +8,7 @@ import sys
 import time
 import json
 from pprint import pprint
+import traceback
 
 # Numeric Constants
 MAX_PLAYLIST_ITEMS = 100
@@ -411,18 +412,25 @@ if __name__ == "__main__":
 	option, *extra_options = args[1:]
 	extra_options = [opt.lower() for opt in extra_options]
 
-	if option in ["info", "-i"]:
-		getCurrentPlayback(extra_options)
-	elif option in ["add-to-playlist", "-a", "remove-from-playlist", "-r"]:
-		playlistControls(option, force_action)
-	elif option in ["play-pause", "-t", "next", "-n", "previous", "-p"]:
-		transportControls(option)
-	elif option in ["shuffle", "-s", "loop", "repeat", "-l"]:
-		extraPlaybackControls(option, extra_options)
-	elif option in ["remove-duplicates", "-d"]:
-		removeDuplicates(extra_options)
-	else:
-		printHelp(args[0])
+	try:
+		if option in ["info", "-i"]:
+			getCurrentPlayback(extra_options)
+		elif option in ["add-to-playlist", "-a", "remove-from-playlist", "-r"]:
+			playlistControls(option, force_action)
+		elif option in ["play-pause", "-t", "next", "-n", "previous", "-p"]:
+			transportControls(option)
+		elif option in ["shuffle", "-s", "loop", "repeat", "-l"]:
+			extraPlaybackControls(option, extra_options)
+		elif option in ["remove-duplicates", "-d"]:
+			removeDuplicates(extra_options)
+		else:
+			printHelp(args[0])
+	except Exception as e:
+		notify("An error occured!", "Aborting..", icon_red_exclaimation)
+		with open(log_file, 'w') as f:
+			print(traceback.format_exc(), file=f)
+		raise(e)
+
 
 
 # Add this to ~/.bash_completions for tab auto-complete in terminal:
