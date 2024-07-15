@@ -12,5 +12,6 @@
 * **okular\_with\_logging.sh**: Open Okular pdf viewer and log list of open pdf files in `/home`.
 * **spotifyAddToPlaylistMouse.py**: Add current playing song on spotify to existing playlist using mouse movements.
 * **spotifyControlsAPI.py**: Play/pause, go to next/previous track, add/remove current playing song on spotify to/from existing playlist or saved track and remove duplicates from playlist or saved tracks using spotipy module (Spotify API).
+* **switch\_pipewire\_pulseaudio**: Switch between pipewire and pulseaudio.
 * **termux\_recover.sh**: Restore Termux from .tar.gpg backup.
 * **whatsapp-watcher.js**: Parse zoom meeting messages sent via whatsapp.
