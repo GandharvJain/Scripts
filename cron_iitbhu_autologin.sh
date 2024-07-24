@@ -49,7 +49,7 @@ echo "Logging out.."
 LOGOUT_OUTPUT=$(curl --silent --connect-timeout 5 http://192.168.249.1:1000/logout?)
 
 MAGIC=$(curl --connect-timeout 5 --silent \
-	-X GET http://192.168.249.1:1000/login? 2>&1 | grep -E "magic" | awk -F'"' '{print $6}')
+	-X GET http://192.168.249.1:1000/login? 2>&1 | xmllint --html --xpath 'string(//*/input[@name="magic"]/@value)' -)
 
 echo "Logging in.."
 CURL_OUTPUT=$(curl --connect-timeout 5 --silent \
