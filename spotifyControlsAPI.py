@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/home/gandharv/python-user/bin/python3
 
 from spotipy.util import prompt_for_user_token
 from spotipy import Spotify

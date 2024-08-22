@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/home/gandharv/python-user/bin/python3
 
 # Add this script to a scheduling system to run every x hours or so
 import time

@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/home/gandharv/python-user/bin/python3
 
 import sys, os
 import math as m

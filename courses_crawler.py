@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/home/gandharv/python-user/bin/python3
 import requests
 from bs4 import BeautifulSoup
 from multiprocessing import Pool, Manager
