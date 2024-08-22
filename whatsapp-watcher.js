@@ -81,9 +81,9 @@ const client = new Client({
 	authStrategy: new LocalAuth({
 		dataPath: WHATSAPP_AUTH_PATH
 	}),
-	webVersionCache: new LocalWebCache({
-		path: WHATSAPP_CACHE_PATH
-	}),
+	// webVersionCache: new LocalWebCache({
+	// 	path: WHATSAPP_CACHE_PATH
+	// }),
 	puppeteer: {
 		args: ['--no-sandbox'],
 	}
