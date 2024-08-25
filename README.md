@@ -6,9 +6,9 @@
 * **cron\_iitbhu\_autologin.py**: Autologin into iit bhu wifi in python without dialog `[once]`.
 * **cron\_iitbhu\_autologin.sh**: Autologin into iit bhu wifi `[once]`.
 * **iitbhu\_autologin.sh**: Autologin into iit bhu wifi `[loop]`.
-* **lens.sh**: Do OCR on screen clipping. [Copied from here](https://gist.github.com/mnofresno/25d0cc6a45aa8644596705c78382304e).
 * **obs_script.py**: Open obs and start recording given scene and profile / stop recording and close obs, to be used as a toggle. Also, show a popup to rename or delete recording.
 * **obs\_window\_selector.py**: Change window in 'window capture' source to the focused window in OBS.
+* **ocr**: Do OCR on screen clipping. [Copied from here](https://gist.github.com/mnofresno/25d0cc6a45aa8644596705c78382304e).
 * **okular\_with\_logging.sh**: Open Okular pdf viewer and log list of open pdf files in `/home`.
 * **spotifyAddToPlaylistMouse.py**: Add current playing song on spotify to existing playlist using mouse movements.
 * **spotifyControlsAPI.py**: Play/pause, go to next/previous track, add/remove current playing song on spotify to/from existing playlist or saved track and remove duplicates from playlist or saved tracks using spotipy module (Spotify API).
