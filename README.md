@@ -5,6 +5,7 @@
 * **courses_crawler.py**: Download course details as pdf from `courses.iitbhu.ac.in`.
 * **cron\_iitbhu\_autologin.py**: Autologin into iit bhu wifi in python without dialog `[once]`.
 * **cron\_iitbhu\_autologin.sh**: Autologin into iit bhu wifi `[once]`.
+* **hotspot\_autotoggle\_on\_ethernet.sh**: Turns hotspot on if ethernet is connected. Place this in `/etc/NetworkManager/dispatcher.d/`.
 * **iitbhu\_autologin.sh**: Autologin into iit bhu wifi `[loop]`.
 * **obs_script.py**: Open obs and start recording given scene and profile / stop recording and close obs, to be used as a toggle. Also, show a popup to rename or delete recording.
 * **obs\_window\_selector.py**: Change window in 'window capture' source to the focused window in OBS.
