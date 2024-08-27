@@ -15,3 +15,4 @@
 * **switch\_pipewire\_pulseaudio**: Switch between pipewire and pulseaudio.
 * **termux\_recover.sh**: Restore Termux from .tar.gpg backup.
 * **whatsapp-watcher.js**: Parse zoom meeting messages sent via whatsapp.
+* **wifi_autologin.sh**: Run the wifi login script if any interface comes up. Place this in `/etc/NetworkManager/dispatcher.d/`.
