@@ -5,6 +5,7 @@ import time
 import getopt
 import sys
 from urllib import request, parse
+import re
 
 # Setting up params
 ignore_last_login = False
@@ -18,9 +19,9 @@ wifi_pass_file = secrets_path + 'iitbhu_wifi_pass.txt'
 with open(last_login_file) as f:
 	last_login = int(f.readline().strip('\n'))
 
-opts, args = getopt.getopt(sys.argv[1:], "i")
+opts, args = getopt.getopt(sys.argv[1:], "f")
 for opt, arg in opts:
-	if opt in ['-i']:
+	if opt in ['-f']:
 		ignore_last_login = True
 
 curr_time = time.strftime("%A %d %B %Y %T %Z", time.localtime())
@@ -30,7 +31,7 @@ print(f"Attempting relogin at {curr_time}")
 time_since_login = int(time.time()) - last_login
 login_cooldown = 4*60*60 - 5*60		#In seconds
 if time_since_login < login_cooldown:
-	print("Already logged in recently")
+	print(f"Already logged in recently at {time.strftime("%A %d %B %Y %T %Z", time.localtime(last_login))}")
 	if ignore_last_login:
 		print("Ignoring last login..")
 	else:
@@ -48,9 +49,9 @@ with open(wifi_pass_file) as f:
 
 print("Logging out..")
 logout_output = request.urlopen(logout_link, timeout=3).read().decode('utf-8')
-for line in r.split('\n'):
-	if 'magic' in line:
-		magic = line.split('"')[5]
+pattern = re.compile(r'name="magic"\s*value="(\w+)"')
+groups = pattern.search(r)
+magic = groups[1]
 
 print("Logging in..")
 try:
