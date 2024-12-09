@@ -3,7 +3,7 @@
 from spotipy.util import prompt_for_user_token
 from spotipy import Spotify
 import concurrent.futures
-from os import popen
+import subprocess
 import sys
 import time
 import json
@@ -31,15 +31,21 @@ icon_red_cross = "/usr/share/icons/Yaru/256x256/actions/dialog-no.png"
 icon_red_exclaimation = "/usr/share/icons/Yaru/256x256/emblems/emblem-important.png"
 
 # DBus commands
-dbus_ping_cmd = "dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.freedesktop.DBus.Peer.Ping 2>/dev/null"
-dbus_toggle_cmd = "dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause"
-dbus_prev_cmd = "dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Previous"
-dbus_next_cmd = "dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Next"
+dbus_prefix = ("dbus-send", "--print-reply", "--dest=org.mpris.MediaPlayer2.spotify", "/org/mpris/MediaPlayer2")
+dbus_ping_cmd = dbus_prefix + ("org.freedesktop.DBus.Peer.Ping",)
+dbus_toggle_cmd = dbus_prefix + ("org.mpris.MediaPlayer2.Player.PlayPause",)
+dbus_prev_cmd = dbus_prefix + ("org.mpris.MediaPlayer2.Player.Previous",)
+dbus_next_cmd = dbus_prefix + ("org.mpris.MediaPlayer2.Player.Next",)
+
+def runCommand(command):
+	completed_process = subprocess.run(command, capture_output=True)
+	return completed_process.stderr, completed_process.stdout
 
 def notify(title="No title", message="", icon_path=""):
 	print(title)
 	print(message) if message else None
-	popen(f'''notify-send "{title}" "{message}" -i "{icon_path}"''')
+	notifyCmd = ["notify-send", title, message, "-i", icon_path]
+	error, output = runCommand(notifyCmd)
 
 def getSpotipyInstance():
 	global username
@@ -327,15 +333,16 @@ def extraPlaybackControls(action, options=list()):
 
 def transportControls(action):
 	# Check if spotify is connected by dbus
-	dbus_is_connected = bool(popen(dbus_ping_cmd).read())
+	error, output = runCommand(dbus_ping_cmd)
+	dbus_is_connected = not bool(error)
 	if dbus_is_connected:
 		if action in ["next", "-n"]:
-			popen(dbus_next_cmd)
+			err, out = runCommand(dbus_next_cmd)
 		elif action in ["previous", "-p"]:
-			popen(dbus_prev_cmd)
+			err, out = runCommand(dbus_prev_cmd)
 		# If action is play/pause:
 		else:
-			popen(dbus_toggle_cmd)
+			err, out = runCommand(dbus_toggle_cmd)
 		exit(0)
 
 	sp = getSpotipyInstance()
